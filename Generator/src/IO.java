@@ -106,7 +106,7 @@ class IO extends PrintWriter {
         return ans;
     }
     
-    public static void readArguments(String path, int[] city, double[] patient, int amb, int hosp){
+    public static void readArguments(String path, double[] city, double[] patient, int amb, int hosp){
     	
     	IO reader;
 		try {
@@ -115,10 +115,8 @@ class IO extends PrintWriter {
 			// Random cities
 	    	city[0] = reader.getInt(); // Number of nodes
 	    	city[1] = reader.getInt(); // Number of roads
-	    	city[2] = reader.getInt(); // Min distance
-	    	city[3] = reader.getInt(); // Max distance
-	    	city[4] = reader.getInt(); // Min demand
-	    	city[5] = reader.getInt(); // Max demand
+	    	city[2] = reader.getDouble(); // Max noise
+	    	city[3] = reader.getInt(); // Max demand
 			
 			// Patients
 	    	patient[0] = reader.getInt(); // Number of patients
