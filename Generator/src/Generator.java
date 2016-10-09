@@ -2,23 +2,31 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 
-
+/**
+ * Class in charge of generating random problems. 
+ * It has to create cities dispositions, different types of patients and
+ * assign locations to the patients, ambulances and hospitals.
+ * 
+ * @author Team 14
+ */
 public class Generator {
 	
 	static Random r = new Random();
+	
+	/* Constants */
 	private static final double INIT_PATIENTS = .6;
 	private static final int MAX_ROUNDS = 100;
-	
+
 	
 	/**
 	 * Generates a complete problem using the parameters from the input file.
 	 * Stores the information in PDDL in a String to print into the output file.
-	 *  
+	 * 
 	 * @param map Information regarding number of nodes, number of roads, noise in the distances and demand
 	 * @param patient Information regarding number of patients and prob of each priority
 	 * @param amb Number of ambulances
 	 * @param hosp Number of hospitals
-	 * @param s String in which store the output
+	 * @return String to print generated map
 	 */
 	public static String generateProblem(double[] map, double[] patient, int amb, int hosp) {
 		
@@ -38,14 +46,16 @@ public class Generator {
 		
 		/* Generate positions */
 		s = s.concat(generatePositions(patient, amb, hosp, lDemand));
-		 
-		 return s;
+
+		return s;
 	}
 	
 	/**
-	 * Generate a random graph using Erdos-Renyi algorithm.
+	 * Generates a random graph using Erdos-Renyi algorithm.
+	 * 
 	 * @param map Information picked from input file
-	 * @param s String to print generated map
+	 * @param locationDemand Array that contains locations with demand = the position
+	 * @return String to print generated map
 	 */
 	private static String generateMap(double[] map, ArrayList<ArrayList<Pair<Integer, Integer>>> locationDemand){
 		
@@ -54,8 +64,7 @@ public class Generator {
 		// int roads = (int) map[1];	FIXME: with the erdos alg it is not needed
 		double noise = map[2];
 		int demand = (int) map[3];
-		
-		//locationDemand = new TreeMap<>();
+
 		ArrayList<Integer> createNodes = new ArrayList<>();		
 		createNodes.add(0);
 		createNodes.add(1);
@@ -86,11 +95,22 @@ public class Generator {
 		return s;
 	}
 	
+	/**
+	 * Generates definitions of objects.
+	 * Patients -> Patient(p1,priority,time_lapse)
+	 * Ambulances -> Ambulance(a1)
+	 * Hospitals -> Hospital(h1)
+	 * 
+	 * @param patient Information regarding number of patients and prob of each priority
+	 * @param amb Number of ambulances
+	 * @param hosp Number of hospitals
+	 * @return String to print
+	 */
 	private static String generateDefinitions(double[] patient, int amb, int hosp) {
-		// Patient(P1,priority,time_lapse)
 		
 		String s = "";
 
+		/* Patients */
 		for(int i = 0; i < patient[0]; i++) {
 			// Priority
 			int priority = r.nextInt(3);
@@ -109,12 +129,12 @@ public class Generator {
 			s = s.concat("(Patient(p" + i + "," + priority + "," + time +"))\n");
 		}
 		
-		// Ambulance(A1)
+		/* Ambulances */
 		for(int i = 0; i < amb; i++) {
 			s = s.concat("(Ambulance(a" + i + "))\n");
 		}
 		
-		// Hospital(H1)
+		/* Hospitals */
 		for(int i = 0; i < hosp; i++) {
 			s = s.concat("(Hospital(h" + i + "))\n");
 		}
@@ -123,10 +143,18 @@ public class Generator {
 	}
 	
 	
-	
+	/**
+	 * Generates initial positions for every object.
+	 * At(Oi,x,y)
+	 * 
+	 * @param patient Information regarding number of patients and prob of each priority
+	 * @param amb Number of ambulances
+	 * @param hosp Number of hospitals
+	 * @param lDemand Array that contains locations with demand = the position
+	 * @return String to print
+	 */
 	private static String generatePositions(double[] patient, int amb, int hosp, ArrayList<ArrayList<Pair<Integer, Integer>>> lDemand) {
-				
-		// At(Oi,x,y)
+			
 		String s = "";
 		ArrayList<Pair<Integer, Integer>> patientLoc = new ArrayList<>();
 		
@@ -172,7 +200,7 @@ public class Generator {
 			}
 		}
 		
-		loc.removeAll(patientLoc);
+		loc.removeAll(patientLoc); // Ambulance and hospitals should not be in the same place as patient
 		
 		
 		
@@ -201,8 +229,13 @@ public class Generator {
 		return s;
 	}
 	
-	
-	
+	/**
+	 * Generates all possible coordinates of a grid NxN, having enough variety
+	 * for each node
+	 * 
+	 * @param nodes Number of nodes
+	 * @return Array with all possible coordinates
+	 */
 	private static ArrayList<Pair<Integer, Integer>> generteCoord(int nodes){
 		
 		ArrayList<Pair<Integer, Integer>> list = new ArrayList<>();
@@ -221,9 +254,18 @@ public class Generator {
 	
 	
 	/* Generate Strings */
+	/**
+	 * Creates the locations as the name of the node, its coordinate and a demand
+	 * Location(n1,x,y,w)
+	 * 
+	 * @param node Number of nodes
+	 * @param coord Coordinate assigned to node
+	 * @param demand Max demand
+	 * @param locationDemand Array that contains locations with demand = the position
+	 * @return String to print generated map
+	 */
 	private static String locationString(int node, Pair<Integer, Integer> coord, int demand, ArrayList<ArrayList<Pair<Integer, Integer>>> locationDemand) {
-		// Location(A,x,y,w)
-		
+				
 		// Random demand for the location
 		int w = r.nextInt(demand);
 		
@@ -240,9 +282,18 @@ public class Generator {
 		return "(Location(" + node + "," + coord.toString() + "," + w +"))\n";		
 	}
 	
+	/**
+	 * Creates the road between two nodes with the distance between them
+	 * Road(n1,n2,w)
+	 * 
+	 * @param node1 Number of the first node to join
+	 * @param node2 Number of the second node to join
+	 * @param coord Array containing all the nodes' coordinates
+	 * @param noise Max noise to add to a path (Euclidean distance)
+	 * @return String to print generated map
+	 */
 	private static String roadString(int node1, int node2, ArrayList<Pair<Integer, Integer>> coord, double noise) {
-		// Road(A,B,w)
-		
+
 		// Distance between nodes (euclidean distance)
 		int x1 = coord.get(node1).x;
 		int x2 = coord.get(node2).x;
@@ -251,7 +302,7 @@ public class Generator {
 		
 		double d = Math.sqrt(Math.pow((x1-x2), 2) + Math.pow((y1-y2), 2));
 		
-		// Add noise?
+		// Add noise (or not)
 		d += noise * r.nextDouble();
 		
 		return "(Road(" + node1 + "," + node2 + "," + d +"))\n";		

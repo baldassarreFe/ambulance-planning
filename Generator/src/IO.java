@@ -100,9 +100,28 @@ class IO extends PrintWriter {
         return ans;
     }
     
-    public static void readArguments(String path, double[] city, double[] patient, int[] objs){
+    
+    
+    
+    /**
+     * Methods coded for the problem
+     * @author Team 14
+     */
+    
+    /**
+     * Parse the input file and store the values. 
+     * Catches exceptions if something goes wrong (no input file, wrong arguments...)
+     * 
+     * @param path Input file
+     * @param city Storage array (numb nodes, numb roads, max noise, max demand)
+     * @param patient Storage array (numb patients, prob of priorities)
+     * @param objs Storage array (numb ambulances, numb hospitals)
+     * @return String with output path
+     */
+    public static String readArguments(String path, double[] city, double[] patient, int[] objs){
     	
     	IO reader;
+    	String out = "";
 		try {
 			InputStream input = new FileInputStream(path);
 			reader = new IO(input);
@@ -122,14 +141,24 @@ class IO extends PrintWriter {
 			// Ambulance and hospitals
 	    	objs[0] = reader.getInt();
 	    	objs[1] = reader.getInt();  
+	    	out = reader.getWord();
 	    	
 	    	reader.close();
 	    	
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
+		
+		return out;
     }
     
+    /**
+     * Writes all the information generated into the output file
+     * Catches exceptions if something goes wrong
+     * 
+     * @param outpath Path and name of the output file
+     * @param content Generated environment in PDDL
+     */
     public static void printPDDL(String outpath, String content) {
     	
     	IO writer;

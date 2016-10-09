@@ -1,4 +1,11 @@
-
+/**
+ * Class that represents a pair of values.
+ * In this case, Cartesian coordinates
+ * @author Team 14
+ *
+ * @param <X>
+ * @param <Y>
+ */
 public class Pair<X, Y> {
 	X x;
 	Y y;
