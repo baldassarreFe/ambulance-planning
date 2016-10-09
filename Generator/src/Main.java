@@ -16,21 +16,16 @@ public class Main {
 		//Read file and check arguments
 		double[] city = {0,0,0,0};
 		double[] patients = {0,0,0,0};
-		int amb = 0, hosp = 0;
-		IO.readArguments(args[0], city, patients, amb, hosp);
+		int[] objs = {0,0};
+		IO.readArguments(args[0], city, patients, objs);
 		
 		
-		/* Generate random map */
-		String s = "";
-		Generator.generateMap(city, s); 
-		
-		/* Generate positions */
-		Generator.genertePositions();
-		
-		/* Generate demands and priorities */
+		/* Generate problem */
+		String s = Generator.generateProblem(city, patients, objs[0], objs[1]);
 		
 		
 		/* Write output PDDL */
+		IO.printPDDL("C:\\Users\\Mónica\\Documents\\GitHub\\ambulance-planning\\Generator\\src\\output.txt", s);
 		
 	
 	}

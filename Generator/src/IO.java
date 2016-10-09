@@ -28,32 +28,26 @@
  */
 
 
-import java.util.StringTokenizer;
-import java.io.BufferedReader;
 import java.io.BufferedOutputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.util.StringTokenizer;
 
 class IO extends PrintWriter {
-	
-	public IO(String path) throws FileNotFoundException {
-		super(new BufferedOutputStream(System.out));
-        r = new BufferedReader(new FileReader(path));
 		
-	}
-	
     public IO(InputStream i) {
         super(new BufferedOutputStream(System.out));
         r = new BufferedReader(new InputStreamReader(i));
     }
-    public IO(InputStream i, OutputStream o) {
+    
+    public IO(OutputStream o) {
         super(new BufferedOutputStream(o));
-        r = new BufferedReader(new InputStreamReader(i));
     }
 
     public boolean hasMoreTokens() {
@@ -106,11 +100,12 @@ class IO extends PrintWriter {
         return ans;
     }
     
-    public static void readArguments(String path, double[] city, double[] patient, int amb, int hosp){
+    public static void readArguments(String path, double[] city, double[] patient, int[] objs){
     	
     	IO reader;
 		try {
-			reader = new IO(path);
+			InputStream input = new FileInputStream(path);
+			reader = new IO(input);
 			
 			// Random cities
 	    	city[0] = reader.getInt(); // Number of nodes
@@ -125,13 +120,28 @@ class IO extends PrintWriter {
 	    	patient[3] = reader.getDouble(); // Prob for priority 3
 	    	
 			// Ambulance and hospitals
-	    	amb = reader.getInt();
-	    	hosp = reader.getInt();  
+	    	objs[0] = reader.getInt();
+	    	objs[1] = reader.getInt();  
 	    	
-		} catch (Exception e) {
-			throw new IllegalArgumentException();
+	    	reader.close();
+	    	
+		} catch (Exception ex) {
+			ex.printStackTrace();
 		}
+    }
+    
+    public static void printPDDL(String outpath, String content) {
     	
-    	
+    	IO writer;
+    	try {
+    		OutputStream output = new FileOutputStream(outpath);
+    		writer = new IO(output);
+    		writer.write(content);
+    		writer.close();
+    		
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
     }
 }
