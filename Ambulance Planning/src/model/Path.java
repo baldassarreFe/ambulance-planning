@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class Path {
-	private final int distance;
+	private final double distance;
 	private final List<Node> path;
 
 	public Node getFrom() {
@@ -20,7 +20,7 @@ public class Path {
 		return (List<Node>) Collections.unmodifiableCollection(path);
 	}
 
-	public int getDistance() {
+	public double getDistance() {
 		return distance;
 	}
 
@@ -28,14 +28,14 @@ public class Path {
 		return path.size();
 	}
 
-	Path(Node from, Node to, int distance) {
+	Path(Node from, Node to, double distance) {
 		path = new ArrayList<>();
 		path.add(from);
 		path.add(to);
 		this.distance = distance;
 	}
 
-	Path(List<Node> path, int distance) {
+	Path(List<Node> path, double distance) {
 		this.path = path;
 		this.distance = distance;
 	}

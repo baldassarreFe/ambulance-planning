@@ -10,7 +10,16 @@ public class Node {
 	private final int id;
 	private final List<NodeContent> contents;
 	private final int request;
+	private final double x;
+	private final double y;
 	
+	public double getX() {
+		return x;
+	}
+	
+	public double getY() {
+		return y;
+	}	
 
 	public int getId() {
 		return id;
@@ -59,12 +68,14 @@ public class Node {
 	}
 
 	// package-private methods
-	public Node(int request) {
-		this(++ID, request);
+	Node(double x, double y, int request) {
+		this(x, y, request, ++ID);
 	}
 
-	Node(int id, int request) {
+	Node(double x, double y, int request, int id) {
 		this.id = id;
+		this.x = x;
+		this.y = y;
 		this.request = request;
 		this.contents = new ArrayList<>();
 	}
