@@ -79,6 +79,10 @@ public class CityMap {
 		}
 	}
 
+	/*
+	 * This function would update the path list (contains the shortest path and the cost info) between every possible pair of points
+	 * @params adjMatrix - adjacency matrix
+	 */
 	private void computePaths(Map<NodePair, Double> adjMatrix) {
 		int numNodes = (int) Math.sqrt(adjMatrix.size());
 		double[][] adjacencyMatrix = new double[numNodes][numNodes];
@@ -91,8 +95,7 @@ public class CityMap {
 			adjacencyMatrix[np.from][np.to] = d;
 		}
 
-		// this loop would generate all the paths and updates the distance
-		// matrix
+		// this loop would generate all the paths and updates the distance matrix
 		for (int i = 0; i < numNodes; i++) {
 			Set<Integer> Q = new HashSet<Integer>();
 			double[] dist = new double[numNodes];
@@ -145,6 +148,9 @@ public class CityMap {
 		}
 	}
 
+	/*
+	 * A utility function for the computePath function
+	 */
 	public static int minDist(double[] dist, Set<Integer> Q) {
 		int ind = 0;
 		int lenDist = dist.length;
