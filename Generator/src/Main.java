@@ -37,7 +37,7 @@ public class Main {
 		
 		
 		/* Generate problem */
-		String s = Generator.generateProblem(city, patients, objs[0], objs[1]);
+		String s = Generator.generateProblem(city, patients, objs[0], objs[1], out);
 		
 		
 		/* Write output PDDL */
