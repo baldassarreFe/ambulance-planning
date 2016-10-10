@@ -30,10 +30,7 @@ public class Main {
 			throw new IllegalArgumentException();
 		
 		/* Read file and check arguments */
-		double[] city = {0,0,0,0};
-		double[] patients = {0,0,0,0};
-		int[] objs = {0,0};
-		ProblemParameters params = JsonInput.readArguments(args[0], city, patients, objs);
+		ProblemParameters params = JsonInput.readArguments(args[0]);
 		
 		/* Generate problem */
 		String s = Generator.generateProblem(params);

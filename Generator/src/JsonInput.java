@@ -20,7 +20,7 @@ class JsonInput {
      * @param objs Storage array (numb ambulances, numb hospitals)
      * @return String with output path
      */
-    public static ProblemParameters readArguments(String path, double[] city, double[] patient, int[] objs){
+    public static ProblemParameters readArguments(String path){
 		try {
 			ProblemParameters result = new ProblemParameters();
 			JSONObject o = new JSONObject(new String(Files.readAllBytes(Paths.get(path)), StandardCharsets.UTF_8));

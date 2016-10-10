@@ -36,7 +36,7 @@ public class Generator {
 		int hosp = params.hospitals;
 		String out = params.output;		
 		
-		String s = "";
+		StringBuilder s = new StringBuilder();
 		ArrayList<ArrayList<Pair<Integer, Integer>>> lDemand = new ArrayList<ArrayList<Pair<Integer, Integer>>>();
 		for(int i = 0; i < map[3]; i++) {
 			ArrayList<Pair<Integer, Integer>> demand = new ArrayList<>();
@@ -44,22 +44,22 @@ public class Generator {
 		}	
 		
 		/* Generate headers of the PDDL file */
-		s = s.concat(generateHeaders(out, map, patient, amb, hosp));
-		s = s.concat("(:init ");
+		s.append(generateHeaders(out, map, patient, amb, hosp));
+		s.append("(:init ");
 		
 		/* Generate random map */		
-		s = s.concat(generateMap(map, lDemand)); 
+		s.append(generateMap(map, lDemand)); 
 		
 		/* Definitions */
-		s = s.concat(generateDefinitions(patient, amb, hosp));
+		s.append(generateDefinitions(patient, amb, hosp));
 		
 		/* Generate positions */
-		s = s.concat(generatePositions(patient, amb, hosp, lDemand));
+		s.append(generatePositions(patient, amb, hosp, lDemand));
 		
 		/* Generate goal */
-		s = s.concat(generateGoal((int)patient[0]));
+		s.append(generateGoal((int)patient[0]));
 
-		return s;
+		return s.toString();
 	}
 	
 	
@@ -81,7 +81,7 @@ public class Generator {
 	private static String generateHeaders(String out, double[] map, double[] patient, int amb, int hosp) {
 		
 		/*Definition of problem and domain */
-		int idx = out.lastIndexOf("\\");
+		int idx = out.lastIndexOf(System.getProperty("file.separator"));
 		if(idx != -1){
 			out = out.substring(idx, out.length());
 		} else {
@@ -90,32 +90,32 @@ public class Generator {
 				out = out.substring(0, idx);
 		}
 		
-		String s = "(define (problem " + out + ")\n";
-		s = s.concat("(:domain ambulance world)\n");
+		StringBuilder s = new StringBuilder("(define (problem " + out + ")\n");
+		s.append("(:domain ambulance world)\n");
 		
 		
 		/* Objects */
-		s = s.concat("(:objects ");
+		s.append("(:objects ");
 		
 		//Locations
 		for(int i = 0; i < map[0]; i++) {
-			s = s.concat("l" + i + " ");
+			s.append("l" + i + " ");
 		}
 		//Patients
 		for(int i = 0; i < patient[0]; i++) {
-			s = s.concat("p" + i + " ");
+			s.append("p" + i + " ");
 		}
 		//Ambulances
 		for(int i = 0; i < amb; i++) {
-			s = s.concat("a" + i + " ");
+			s.append("a" + i + " ");
 		}
 		//Hospitals
 		for(int i = 0; i < hosp; i++) {
-			s = s.concat("h" + i + " ");
+			s.append("h" + i + " ");
 		}
-		s = s.concat(")\n");		
+		s.append(")\n");		
 
-		return s;
+		return s.toString();
 	}
 	
 	/**
@@ -176,7 +176,7 @@ public class Generator {
 	 */
 	private static String generateDefinitions(double[] patient, int amb, int hosp) {
 		
-		String s = "";
+		StringBuilder s = new StringBuilder();
 
 		/* Patients */
 		for(int i = 0; i < patient[0]; i++) {
@@ -194,20 +194,20 @@ public class Generator {
 			if (r.nextDouble() > INIT_PATIENTS) 
 				time = r.nextInt(MAX_ROUNDS);			
 			
-			s = s.concat("(Patient(p" + i + "," + priority + "," + time +"))\n");
+			s.append("(Patient(p" + i + "," + priority + "," + time +"))\n");
 		}
 		
 		/* Ambulances */
 		for(int i = 0; i < amb; i++) {
-			s = s.concat("(Ambulance(a" + i + "))\n");
+			s.append("(Ambulance(a" + i + "))\n");
 		}
 		
 		/* Hospitals */
 		for(int i = 0; i < hosp; i++) {
-			s = s.concat("(Hospital(h" + i + "))\n");
+			s.append("(Hospital(h" + i + "))\n");
 		}
 		
-		return s;
+		return s.toString();
 	}
 	
 	
@@ -223,7 +223,7 @@ public class Generator {
 	 */
 	private static String generatePositions(double[] patient, int amb, int hosp, ArrayList<ArrayList<Pair<Integer, Integer>>> lDemand) {
 			
-		String s = "";
+		StringBuilder s = new StringBuilder();
 		ArrayList<Pair<Integer, Integer>> patientLoc = new ArrayList<>();
 		
 		/* Patients: according to demand */
@@ -251,14 +251,14 @@ public class Generator {
 				patientLoc.add(location);
 				
 				for(int n = 0 ; n < nPatients && p < patients; n++, p++) {
-					s = s.concat("(At(p" + p + "," + location.x + "," + location.y + "))\n");
+					s.append("(At(p" + p + "," + location.x + "," + location.y + "))\n");
 				}
 			}
 		}
 		
 		// All patients must be waiting
 		for(int i = 0; i < patients; i++){
-			s = s.concat("(Waiting(p" + i + "))\n");
+			s.append("(Waiting(p" + i + "))\n");
 		}
 		
 		// Retrieve all locations and remove patient location
@@ -285,8 +285,8 @@ public class Generator {
 			int x = loc.get(randLoc).x;
 			int y = loc.get(randLoc).y;
 			
-			s = s.concat("(At(a" + i + "," + x + "," + y + "))\n");
-			s = s.concat("(Available(a" + i + "))\n");
+			s.append("(At(a" + i + "," + x + "," + y + "))\n");
+			s.append("(Available(a" + i + "))\n");
 		}
 		
 		/* Hospitals */
@@ -297,11 +297,11 @@ public class Generator {
 			int x = loc.get(randLoc).x;
 			int y = loc.get(randLoc).y;
 			
-			s = s.concat("(At(h" + i + "," + x + "," + y + "))\n");
+			s.append("(At(h" + i + "," + x + "," + y + "))\n");
 		}
-		s = s.concat(")\n"); // Close init
+		s.append(")\n"); // Close init
 		
-		return s;
+		return s.toString();
 	}
 	
 	/**
@@ -313,14 +313,14 @@ public class Generator {
 	 */
 	private static String generateGoal(int patients) {
 		
-		String s = "(:goal ";
+		StringBuilder s = new StringBuilder("(:goal ");
 		
 		for(int i = 0; i < patients; i++) {
-			s = s.concat("(InHospital(p" + i + "))\n");			
+			s.append("(InHospital(p" + i + "))\n");			
 		}
-		s = s.concat("))"); // Close goal and define
+		s.append("))"); // Close goal and define
 		
-		return s;
+		return s.toString();
 	}
 	
 	/**

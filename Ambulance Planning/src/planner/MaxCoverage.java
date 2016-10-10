@@ -60,9 +60,9 @@ public class MaxCoverage {
 		double[][] distance = new double[numNodes][numNodes];
 		List<List<Integer>> paths = new ArrayList<List<Integer>>();
 		
-		//HashMap<Integer,List<List<Integer>>> map=new HashMap<Integer,List<List<Integer>>>(); 
+		// HashMap<Integer,List<List<Integer>>> map=new HashMap<Integer,List<List<Integer>>>(); 
 		
-		// this loop would generate all the paths and 
+		// this loop would generate all the paths and updates the distance matrix
 		for(int i = 0; i<numNodes; i++)
 		{
 			Set<Integer> Q = new HashSet<Integer>();
