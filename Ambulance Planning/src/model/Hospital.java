@@ -1,6 +1,6 @@
 package model;
 
-public class Hospital {
+public class Hospital implements NodeContent {
 private static int ID = 0;
 	
 	private final int id;
