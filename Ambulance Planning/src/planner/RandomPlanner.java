@@ -9,7 +9,7 @@ import model.Ambulance;
 import model.CityMap;
 import model.Node;
 
-public class RandomPlanner implements Planner {
+public class RandomPlanner extends Planner {
 
 	@Override
 	public List<Action> solve(CityMap map) {
