@@ -1,9 +1,7 @@
 package planner;
 
 
-import model.Action;
-import model.CityMap;
-import model.Node;
+import model.*;
 import utils.Pair;
 import utils.Utils;
 
@@ -47,18 +45,21 @@ public class PSOPlanner extends Planner {
 		patCnt = patients.size();
 		hosCnt = hospitals.size();
 
+		// Handle bounds for particles
 		particleDims = ambCnt * 2 + patCnt;
-		buildBounds(); // creates particleBounds
+		buildBounds();
 
 		precalcOptimalHospitals();
 
+		// Initialize PSO
 		evaluator = new VRPEvaluator();
 		pso = new PSO(evaluator, particleDims, particleBounds);
 
+		// Find solution
 		double[] particle = pso.run(Long.MAX_VALUE);
-		List<Action> plan = decodePlan(particle);
+		Plan plan = decodePlan(particle);
 
-		return plan;
+		return plan.toMainRepresentation();
 	}
 
 	/**
@@ -69,17 +70,29 @@ public class PSOPlanner extends Planner {
 	private void buildBounds() {
 		particleBounds = new double[particleDims][2];
 
-		// todo: (!!!) get bounds for nodes' coordinates from map (currently unavailable)
-		int minX = 0, maxX = 1;
-		int minY = 0, maxY = 1;
+		/*
+		 * Get bounding box for the map.
+		 */
+		double minX = Double.POSITIVE_INFINITY, maxX = Double.NEGATIVE_INFINITY;
+		double minY = Double.POSITIVE_INFINITY, maxY = Double.NEGATIVE_INFINITY;
+		for (Node node : map.getNodes()) {
+			double x = node.getX();
+			double y = node.getY();
+			minX = Math.min(minX, x);
+			maxX = Math.max(maxX, x);
+			minY = Math.min(minY, y);
+			maxY = Math.max(maxY, y);
+		}
 
+		/*
+		 * Set correct values in particleBounds.
+		 */
 		for (int i = 0; i < ambCnt * 2; i += 2) {
 			particleBounds[i][0] = minX;
 			particleBounds[i][1] = maxX;
 			particleBounds[i + 1][0] = minY;
 			particleBounds[i + 1][1] = maxY;
 		}
-
 		for (int i = ambCnt * 2; i < ambCnt * 2 + patCnt; i++) {
 			particleBounds[i][0] = 0;
 			particleBounds[i][1] = 1;
@@ -104,7 +117,8 @@ public class PSOPlanner extends Planner {
 				optHospitals[i][j] = -1;
 				for (int k = 0; k < hosCnt; k++) {
 					if (isValidHospital(patients.get(i), hospitals.get(k))) {
-						double curDist = 0;  // todo: (!!!) map.shortestDist(i, k) + map.shortestDist(k, j);
+						double curDist = shortestPath(patients.get(i), hospitals.get(k)).getDistance()
+								+ shortestPath(hospitals.get(k), patients.get(j)).getDistance();
 						if (optHospitals[i][j] == -1 || optHospitalsDist[i][j] > curDist) {
 							optHospitals[i][j] = k;
 							optHospitalsDist[i][j] = curDist;
@@ -115,7 +129,7 @@ public class PSOPlanner extends Planner {
 			singleOptHospitals[i] = -1;
 			for (int k = 0; k < hosCnt; k++) {
 				if (isValidHospital(patients.get(i), hospitals.get(k))) {
-					double curDist = 0;  // todo: (!!!) map.shortestDist(i, k);
+					double curDist = shortestPath(patients.get(i), hospitals.get(k)).getDistance();
 					if (singleOptHospitals[i] == -1 || singleOptHospitalsDist[i] > curDist) {
 						singleOptHospitals[i] = k;
 						singleOptHospitalsDist[i] = curDist;
@@ -129,17 +143,20 @@ public class PSOPlanner extends Planner {
 	 * Check if the given hospital can accept the given patient.
 	 */
 	private boolean isValidHospital(Node patient, Node hospital) {
+		/*
+		 * Currently every hospital can take care of any patient.
+		 */
 		return true;
 	}
 
 
 	/**
-	 * Transform PSO particle into a valid plan.
+	 * Transform PSO particle into a valid routes.
 	 * <p>
-	 * It's the heart of algorithm. For example, the method can be used to generate a good valid plan
+	 * It's the heart of algorithm. For example, the method can be used to generate a good valid routes
 	 * from a random particle, without actual use of PSO.
 	 */
-	private List<Action> decodePlan(double[] particle) {
+	private Plan decodePlan(double[] particle) {
 		/*
 		 * Split particle into specific subarrays.
 		 */
@@ -158,15 +175,11 @@ public class PSOPlanner extends Planner {
 		int[][] ambPriorities = getAmbPriorities(ambDims);
 
 		/*
-		 * Add patients to the plan.
+		 * Add patients to the routes.
 		 */
-		List<Integer>[] plan = new List[ambCnt];
-		for (int i = 0; i < ambCnt; i++) {
-			plan[i] = new ArrayList<>();
-		}
-		double curPlanCost = 0;
+		Plan plan = new Plan(ambCnt);
 		for (int patient : patientsSorted) {
-			// Insert the patient into the plan.
+			// Insert the patient into the routes.
 			// Test only first few ambulances (currently: at least 2, but not more than 33% or 10)
 			int ambsToTest = Math.max(Math.min(ambCnt, 2), Math.min(ambCnt / 3, 10));
 			double bestInsertionCost = Double.POSITIVE_INFINITY;
@@ -174,7 +187,7 @@ public class PSOPlanner extends Planner {
 			int insertionIndex = -1;
 			for (int i = 0; i < ambsToTest; i++) {
 				int ambulance = ambPriorities[patient][i];
-				Pair<Integer, Double> curInsertion = tryInsert(plan[ambulance], patient);
+				Pair<Integer, Double> curInsertion = tryInsert(plan.routes[ambulance], ambulance, patient);
 				if (curInsertion.y < bestInsertionCost) {
 					bestInsertionCost = curInsertion.y;
 					insertionAmbulance = ambulance;
@@ -183,25 +196,83 @@ public class PSOPlanner extends Planner {
 			}
 
 			/*
-			 * Insert patient into chosen position in the plan.
+			 * Insert patient into chosen position in the routes.
 			 */
-			curPlanCost += bestInsertionCost;
-			plan[insertionAmbulance].add(insertionIndex, patient);
+			plan.planCost += bestInsertionCost;
+			plan.routes[insertionAmbulance].add(insertionIndex, patient);
 
 		}
 
-		// todo: (!!!) reformat plan and return
-		return null;
+		return plan;
 	}
 
 	/**
+	 * Find the best spot in the route to insert new patient.
+	 * <p>
+	 * Method does not change the given list.
 	 *
-	 * @param ambPlan
-	 * @param patient
-	 * @return pair of insertion index and cost delta
+	 * @param ambPlan list of patients to visit
+	 * @param amb     index of an ambulance
+	 * @param pat     new patient
+	 * @return pair of insertion index and planCost delta
 	 */
-	private Pair<Integer, Double> tryInsert(List<Integer> ambPlan, int patient) {
-		return null; // todo
+	private Pair<Integer, Double> tryInsert(List<Integer> ambPlan, int amb, int pat) {
+		Node ambNode = ambulances.get(amb);
+		Node patNode = patients.get(pat);
+		/*
+		 * Special case of empty routes.
+		 */
+		if (ambPlan.size() == 0) {
+			return new Pair<>(0, shortestPath(ambNode, patNode).getDistance());
+		}
+		/*
+		 * Find bounds where patient can be placed considering his priority.
+		 * Can use two binary searches, but that is unnecessary.
+		 */
+		int patPriority = patients.get(pat).getRequest();
+		int l = 0;
+		int r = 0;
+		for (; r < ambPlan.size(); r++) {
+			int p = patients.get(ambPlan.get(r)).getRequest();
+			if (patPriority > p) {
+				break;
+			} else if (patPriority < p) {
+				l = r + 1;
+			}
+		}
+
+		/*
+		 * Find best spot to insert patient.
+		 */
+		Pair<Integer, Double> pair = null;
+		for (int i = l; i <= r; i++) {
+			double diff;
+			if (i == 0) {
+				int next = ambPlan.get(i);
+				Node nextNode = patients.get(next);
+				diff = -shortestPath(ambNode, nextNode).getDistance()
+						+ shortestPath(ambNode, patNode).getDistance()
+						+ optHospitalsDist[pat][next];
+			} else if (i == ambPlan.size()) {
+				int prev = ambPlan.get(i - 1);
+				diff = -singleOptHospitalsDist[prev]
+						+ optHospitalsDist[prev][pat]
+						+ singleOptHospitalsDist[pat];
+			} else {
+				int prev = ambPlan.get(i - 1);
+				int next = ambPlan.get(i);
+				diff = -optHospitalsDist[prev][next]
+						+ optHospitalsDist[prev][pat]
+						+ optHospitalsDist[pat][next];
+			}
+			if (pair == null || pair.y > diff) {
+				pair = new Pair<>(i, diff);
+			}
+		}
+
+		assert pair != null;
+
+		return pair;
 	}
 
 	/**
@@ -237,30 +308,104 @@ public class PSOPlanner extends Planner {
 	}
 
 	/**
-	 * Evaluate the plan.
+	 * Evaluate the routes.
 	 *
 	 * @param plan list of actions
 	 * @return value to minimize
 	 */
-	public double evaluatePlan(List<Action> plan) {
-		return Double.POSITIVE_INFINITY; // todo (!!!) probably will already be stored in the plan variable (of course cannot be stored just in the list)
+	private double evaluatePlan(Plan plan) {
+		return plan.planCost;
 	}
 
 	/**
-	 * Apply additional heuristics to enhance the existing plan.
+	 * Apply additional heuristics to enhance the existing routes.
 	 *
-	 * @param plan current plan
-	 * @return improved plan
+	 * @param plan current routes
+	 * @return improved routes
 	 */
-	public List<Action> applyOptimizations(List<Action> plan) {
+	private List<Action> applyOptimizations(List<Action> plan) {
 		return plan;  // todo: when main part works, implement this (2-opt, for example) (it's an important part)
 	}
 
+
+	/**
+	 * Wrapper for shortestPath method in CityMap.
+	 */
+	private Path shortestPath(Node a, Node b) {
+		return map.shortestPath(a.getId(), b.getId());
+	}
+
+
+	/**
+	 * Implementation of PSO Evaluator for VRP problem.
+	 */
 	public class VRPEvaluator extends PSO.PSOEvaluator {
+
 		@Override
 		public double evaluate(double[] particle) {
-			List<Action> plan = decodePlan(particle);
+			Plan plan = decodePlan(particle);
 			return evaluatePlan(plan);
+		}
+	}
+
+	/**
+	 * Representation of a plan that is used in algorithm.
+	 */
+	private class Plan {
+
+		private List<Integer>[] routes;
+		private double planCost;
+
+		public Plan(int ambCnt) {
+			routes = new List[ambCnt];
+			for (int i = 0; i < ambCnt; i++) {
+				routes[i] = new ArrayList<>();
+			}
+
+			planCost = 0;
+		}
+
+		/**
+		 * Transform plan from inner representation into real one.
+		 *
+		 * @return plan representation used by model
+		 */
+		private List<Action> toMainRepresentation() {
+
+			List<Action> actions = new ArrayList<>();
+
+			// todo
+
+//			for (int i = 0; i < routes.length; i++) {
+//				int id = ambulances.get(i).getId();
+//
+//			}
+
+			return actions;
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder str = new StringBuilder();
+			str.append("Plan cost: ").append(planCost).append("\n");
+			for (int i = 0; i < routes.length; i++) {
+				int id = ambulances.get(i).getId();
+				str.append("A").append(id).append(" ->");
+				for (int j = 0; j < routes[i].size() - 1; j++) {
+					int cur = routes[i].get(j);
+					int nxt = routes[i].get(j + 1);
+					int hos = optHospitals[cur][nxt];
+					str.append(" P").append(patients.get(cur).getId())
+							.append(" H").append(hospitals.get(hos).getId());
+				}
+				int cur = routes[i].get(routes[i].size() - 1);
+				int hos = singleOptHospitals[cur];
+				str.append(" P").append(patients.get(cur).getId())
+						.append(" H").append(hospitals.get(hos).getId());
+				str.append("\n");
+			}
+
+			return str.toString();
 		}
 	}
 

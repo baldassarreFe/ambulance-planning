@@ -2,7 +2,6 @@ package utils;
 
 
 import java.util.Arrays;
-import java.util.Comparator;
 
 public class Utils {
 
@@ -15,9 +14,8 @@ public class Utils {
 
 
 	/**
-	 *
 	 * Get ordered indices of array elements after sorting.
-	 *
+	 * <p>
 	 * Example: [0.3, 0.5, 0.2] -> [2, 0, 1].
 	 *
 	 * @param x input array
@@ -36,5 +34,6 @@ public class Utils {
 		return indices;
 	}
 
-	private Utils() { }
+	private Utils() {
+	}
 }
