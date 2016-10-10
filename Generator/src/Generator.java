@@ -28,15 +28,18 @@ public class Generator {
 	 * @param hosp Number of hospitals
 	 * @return String to print generated map
 	 */
-	public static String generateProblem(double[] map, double[] patient, int amb, int hosp) {
+	public static String generateProblem(double[] map, double[] patient, int amb, int hosp, String out) {
 		
 		String s = "";
 		ArrayList<ArrayList<Pair<Integer, Integer>>> lDemand = new ArrayList<ArrayList<Pair<Integer, Integer>>>();
 		for(int i = 0; i < map[3]; i++) {
 			ArrayList<Pair<Integer, Integer>> demand = new ArrayList<>();
 			lDemand.add(demand);
-		}		
+		}	
 		
+		/* Generate headers of the PDDL file */
+		s = s.concat(generateHeaders(out, map, patient, amb, hosp));
+		s = s.concat("(:init ");
 		
 		/* Generate random map */		
 		s = s.concat(generateMap(map, lDemand)); 
@@ -46,6 +49,65 @@ public class Generator {
 		
 		/* Generate positions */
 		s = s.concat(generatePositions(patient, amb, hosp, lDemand));
+		
+		/* Generate goal */
+		s = s.concat(generateGoal((int)patient[0]));
+
+		return s;
+	}
+	
+	
+	
+	/* Partial generators */
+	/**
+	 * Generates the definition of the problem, the domain and the objects.
+	 * define (problem name)
+	 * (:domain ambulance world)
+	 * (:objects l0 l1 p0 p1 a0 h0...)
+	 * 
+	 * @param out Path of the output file
+	 * @param map Information regarding number of nodes, number of roads, noise in the distances and demand
+	 * @param patient Information regarding number of patients and prob of each priority
+	 * @param amb Number of ambulances
+	 * @param hosp Number of hospitals
+	 * @return String to print headers
+	 */
+	private static String generateHeaders(String out, double[] map, double[] patient, int amb, int hosp) {
+		
+		/*Definition of problem and domain */
+		int idx = out.lastIndexOf("\\");
+		if(idx != -1){
+			out = out.substring(idx, out.length());
+		} else {
+			idx = out.lastIndexOf(".");
+			if (idx != -1)
+				out = out.substring(0, idx);
+		}
+		
+		String s = "(define (problem " + out + ")\n";
+		s = s.concat("(:domain ambulance world)\n");
+		
+		
+		/* Objects */
+		s = s.concat("(:objects ");
+		
+		//Locations
+		for(int i = 0; i < map[0]; i++) {
+			s = s.concat("l" + i + " ");
+		}
+		//Patients
+		for(int i = 0; i < patient[0]; i++) {
+			s = s.concat("p" + i + " ");
+		}
+		//Ambulances
+		for(int i = 0; i < amb; i++) {
+			s = s.concat("a" + i + " ");
+		}
+		//Hospitals
+		for(int i = 0; i < hosp; i++) {
+			s = s.concat("h" + i + " ");
+		}
+		s = s.concat(")\n");		
 
 		return s;
 	}
@@ -188,6 +250,11 @@ public class Generator {
 			}
 		}
 		
+		// All patients must be waiting
+		for(int i = 0; i < patients; i++){
+			s = s.concat("(Waiting(p" + i + "))\n");
+		}
+		
 		// Retrieve all locations and remove patient location
 		ArrayList<Pair<Integer, Integer>> loc = new ArrayList<>();
 		for(int i = 0; i < lDemand.size(); i++) {
@@ -213,6 +280,7 @@ public class Generator {
 			int y = loc.get(randLoc).y;
 			
 			s = s.concat("(At(a" + i + "," + x + "," + y + "))\n");
+			s = s.concat("(Available(a" + i + "))\n");
 		}
 		
 		/* Hospitals */
@@ -225,6 +293,26 @@ public class Generator {
 			
 			s = s.concat("(At(h" + i + "," + x + "," + y + "))\n");
 		}
+		s = s.concat(")\n"); // Close init
+		
+		return s;
+	}
+	
+	/**
+	 * Generate the goal string in PDDL. All patients must be at a hospital.
+	 * InHospital(p0)
+	 * 
+	 * @param patients Number of patients
+	 * @return String to write
+	 */
+	private static String generateGoal(int patients) {
+		
+		String s = "(:goal ";
+		
+		for(int i = 0; i < patients; i++) {
+			s = s.concat("(InHospital(p" + i + "))\n");			
+		}
+		s = s.concat("))"); // Close goal and define
 		
 		return s;
 	}
@@ -256,7 +344,7 @@ public class Generator {
 	/* Generate Strings */
 	/**
 	 * Creates the locations as the name of the node, its coordinate and a demand
-	 * Location(n1,x,y,w)
+	 * Location(l1,x,y,w)
 	 * 
 	 * @param node Number of nodes
 	 * @param coord Coordinate assigned to node
@@ -279,12 +367,12 @@ public class Generator {
 			locationDemand.get(w).add(coord);			
 		}
 		
-		return "(Location(" + node + "," + coord.toString() + "," + w +"))\n";		
+		return "(Location(l" + node + "," + coord.toString() + "," + w +"))\n";		
 	}
 	
 	/**
 	 * Creates the road between two nodes with the distance between them
-	 * Road(n1,n2,w)
+	 * Road(l1,l2,w)
 	 * 
 	 * @param node1 Number of the first node to join
 	 * @param node2 Number of the second node to join
@@ -305,7 +393,7 @@ public class Generator {
 		// Add noise (or not)
 		d += noise * r.nextDouble();
 		
-		return "(Road(" + node1 + "," + node2 + "," + d +"))\n";		
+		return "(Road(l" + node1 + ",l" + node2 + "," + d +"))\n";		
 	}
 
 }
