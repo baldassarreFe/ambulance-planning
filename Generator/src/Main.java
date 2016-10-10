@@ -33,14 +33,12 @@ public class Main {
 		double[] city = {0,0,0,0};
 		double[] patients = {0,0,0,0};
 		int[] objs = {0,0};
-		String out = IO.readArguments(args[0], city, patients, objs);
-		
+		ProblemParameters params = JsonInput.readArguments(args[0], city, patients, objs);
 		
 		/* Generate problem */
-		String s = Generator.generateProblem(city, patients, objs[0], objs[1], out);
-		
+		String s = Generator.generateProblem(params);
 		
 		/* Write output PDDL */
-		IO.printPDDL(out, s);
+		IO.printPDDL(params.output, s);
 	}
 }

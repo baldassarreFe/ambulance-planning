@@ -28,7 +28,13 @@ public class Generator {
 	 * @param hosp Number of hospitals
 	 * @return String to print generated map
 	 */
-	public static String generateProblem(double[] map, double[] patient, int amb, int hosp, String out) {
+	public static String generateProblem(ProblemParameters params) {
+		// TODO domething better here?
+		double[] map = new double[] {params.nodes, params.roads, params.noise, params.demand}; 
+		double[] patient = new double[] {params.patients, params.severity1prob, params.severity2prob, params.severity3prob}; 
+		int amb = params.ambulances;
+		int hosp = params.hospitals;
+		String out = params.output;		
 		
 		String s = "";
 		ArrayList<ArrayList<Pair<Integer, Integer>>> lDemand = new ArrayList<ArrayList<Pair<Integer, Integer>>>();
