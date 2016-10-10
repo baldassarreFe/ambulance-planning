@@ -10,10 +10,6 @@ import java.util.Scanner;
 import java.util.Set;
 
 /**
-* 
-*/
-
-/**
 * @author Team 14
 *
 */
@@ -124,23 +120,8 @@ public class MaxCoverage {
 			int[][] ambulancePlan = new int[optLocations.length][3];
 			ambulancePlan = rearrange(ambID, ambulanceLocations, optLocations, distance);
 			
-			/*System.out.println("OPTIMAL LOCATION");
-			
 			for(int i = 0; i<optLocations.length; i++)
 			{
-				System.out.println(optLocations[i]);
-			}
-			
-			System.out.println("PLAN REARRANGE");
-			System.out.println("AMB-ID   STRT   STOP");*/
-			for(int i = 0; i<optLocations.length; i++)
-			{
-				/*for(int j = 0; j<3; j++)
-				{
-					System.out.print(" " + ambulancePlan[i][j]);
-				}
-				System.out.println();
-				*/
 				if(ambulancePlan[i][1]!=ambulancePlan[i][2])
 				{
 					int indPath = ambulancePlan[i][1]*numNodes + ambulancePlan[i][2]; 
@@ -151,6 +132,14 @@ public class MaxCoverage {
 		}
 	}
 
+	/*
+	 * returns the plan for the ambulances
+	 * @params ambID - array of ambulance IDS
+	 * @params ambulanceLocations - array of ambulance locations
+	 * @params optLocations - array of optimal locations found out by the algorithm
+	 * @params distance - the shortest path distance matrix
+	 * returns a plan for each available ambulance
+	 */
 	public static int[][] rearrange(int[] ambID, int[] ambulanceLocations, int[] optLocations, double[][] distance) {
 		
 		int[][] planRearrange = new int[optLocations.length][3];
@@ -205,6 +194,9 @@ public class MaxCoverage {
 		return planRearrange;
 	}
 
+	/*
+	 * Utility fn for the rearrange function
+	 */
 	public static int max2(double[][] minArr) {
 		double max = Double.NEGATIVE_INFINITY;
 		int ind = -1;
@@ -219,6 +211,9 @@ public class MaxCoverage {
 		return ind;
 	}
 
+	/*
+	 * Normalizes the demand array
+	 */
 	public static double[] normDemand(double[] demand, double d) {
 		for(int i = 0; i<demand.length; i++)
 		{
@@ -227,6 +222,14 @@ public class MaxCoverage {
 		return demand;
 	}
 
+	/*
+	 * Finds optimal location for the ambulances to be placed
+	 * @params numAmbulances - the number of available ambulances
+	 * @params distance - the shortest distance matrix
+	 * @params demandNorm - normalized demand array
+	 * @params demand - demand array
+	 * returns the optimal location for the ambulances
+	 */
 	public static int[] findMaxCoverageLocations(int numAmbulances, double[][] distance, double[] demandNorm, double[] demand) {
 		int[] optLocation = new int[numAmbulances];
 		int numNodes = demand.length;
@@ -275,19 +278,18 @@ public class MaxCoverage {
 				iter++;
 			}
 			
-			/*System.out.println("CLASSSSSSSS");
-			for(int l = 0; l<numNodes; l++)
-			{
-				System.out.print(" " + annotateNodes[l]);
-			}
-			System.out.println();*/
-			
 			optLocation = bestGuess;
 		}
 		
 		return optLocation;
 	}
 
+	/*
+	 * classify each node to a cluster based on the shortest distances to the centroid of the cluster
+	 * @params distance - the shortest distance matrix
+	 * @params bestGuess - the centroids for various clusters
+	 * returns the annotated cluster for each node
+	 */
 	public static int[] annotate(double[][] distance, int[] bestGuess) {
 		int numNodes = distance.length;
 		int numClusters = bestGuess.length;
@@ -310,6 +312,11 @@ public class MaxCoverage {
 		return annotatedNodes;
 	}
 
+	/*
+	 * Evaluates the random initialisations for clustering the nodes
+	 * @params init - init nodes
+	 * @params distance - the shortest distance matrix
+	 */
 	public static double evalInit(int[] init, double[][] distance) {
 		// evaluates the random initialisations for the k-means
 		double[] dist = new double[init.length];
@@ -335,6 +342,9 @@ public class MaxCoverage {
 		return eval;
 	}
 
+	/*
+	 * returns the geometric mean of a given sequence of distances
+	 */
 	public static double calcGM(double[] dist) {
 		double GM = 1;
 		for(int i = 0; i<dist.length; i++)
@@ -345,6 +355,15 @@ public class MaxCoverage {
 		return GM;
 	}
 
+	/*
+	 * Finds the optimum centroids of given clusters of points
+	 * @params numAmb - number of available ambulances
+	 * @params distance - the shortest distance matrix
+	 * @params demandNorm - the normalised demand at each node
+	 * @params demand - the demand at each node
+	 * @params classArr - to which cluster does each node belongs to
+	 * returns - the node numbers where the centroids must be placed
+	 */
 	public static int[] centroidFinder(int numAmb, double[][] distance, double[] demandNorm, double[] demand, int[] classArr) {
 		
 		int[] optLocation = new int[numAmb];
@@ -399,6 +418,11 @@ public class MaxCoverage {
 		return optLocation;
 	}
 
+	/*
+	 * Calculates the confidence for a node to be an apt location for the ambulance to be placed in a cluster
+	 * @params weightDist - weighted distance from other nodes
+	 * @params demNode - demand at that node 
+	 */
 	public static double penalty(double[][] weightDist, double demNode) {
 		double numerator = 0;
 		double denominator = 0;
@@ -410,6 +434,9 @@ public class MaxCoverage {
 		return demNode/(numerator/denominator);
 	}
 
+	/*
+	 * utility fn for the dijkstra's algorithm
+	 */
 	public static int minDist(double[] dist, Set<Integer> Q) {
 		int ind = 0;
 		int lenDist = dist.length;
@@ -428,6 +455,10 @@ public class MaxCoverage {
 		return ind;
 	}
 	
+	/*
+	 * calculates the min value and its ind in a 1D double array
+	 * @params - 1D double array 
+	 */
 	public static double[] minArr(double[] arr) {
 		double ind = 0;
 		int lenDist = arr.length;
@@ -446,6 +477,10 @@ public class MaxCoverage {
 		return minDetails;
 	}
 		
+	/*
+	 * calculates the max value and its ind in a 1D double array
+	 * @params - 1D double array 
+	 */
 	public static double[] maxArr(double[] arr) {
 		double ind = 0;
 		int lenDist = arr.length;
