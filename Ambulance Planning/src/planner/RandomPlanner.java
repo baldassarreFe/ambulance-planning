@@ -9,7 +9,7 @@ public class RandomPlanner extends Planner {
 
 	@Override
 	public List<Action> solve(CityMap map) {
-		int from = map.getAmbulancesLocations().get(0);
+		int from = map.getAmbulances().get(0).getNode();
 		int to = (int) map.adjacentNodes(from).toArray()[0];
 		Ambulance amb = map.getAmbulances().get(0);
 		

@@ -8,24 +8,24 @@ import java.util.Random;
 import java.util.Set;
 
 import model.CityMap;
-import model.Path;
 
 /**
 * @author Team 14
 *
 */
 public class MaxCoverage {
-	public static Map<Integer, Path> findAmbulancesDestinations(CityMap map, int numNodes, double[] demand, int numAmbulances,
+	public static Map<Integer, List<Integer>> findAmbulancesDestinations(CityMap map, int numAmbulances,
 			int[] ambulanceLocations, int[] ambID, double[][] distance, List<List<Integer>> paths) {
 		
-		Map<Integer, Path> result = new HashMap<>();
+		Map<Integer, List<Integer>> result = new HashMap<>();
 
-		double[] max = maxArr(demand);
-		double[] demandNorm = normDemand(demand, max[1]);
+		List<Double> demands = map.getDemands();
+		double max = demands.stream().max(Double::compareTo).get();
+		double[] demandNorm = demands.stream().mapToDouble(d -> d/max).toArray();
 
 		// numAmbulances is the number of available ambulances
 		if (numAmbulances >= 1) {
-			int[] optLocations = findMaxCoverageLocations(numAmbulances, distance, demandNorm, demand);
+			int[] optLocations = findMaxCoverageLocations(numAmbulances, distance, demandNorm, demands.stream().mapToDouble(d->d).toArray());
 			int[][] ambulancePlan = new int[optLocations.length][3];
 			ambulancePlan = rearrangeHungarian(ambID, ambulanceLocations, optLocations, distance);
 			
@@ -33,7 +33,7 @@ public class MaxCoverage {
 			{
 				if(ambulancePlan[i][1]!=ambulancePlan[i][2])
 				{
-					int indPath = ambulancePlan[i][1]*numNodes + ambulancePlan[i][2]; 
+					int indPath = ambulancePlan[i][1]*map.nodesCount() + ambulancePlan[i][2]; 
 					List<Integer> bstPath = paths.get(indPath);
 					//System.out.println(Arrays.toString(bstPath.toArray()));
 				}

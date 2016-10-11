@@ -51,9 +51,8 @@ public class Main {
 			String answer = in.readLine().trim();
 			if (!answer.isEmpty()) {
 				// parse user input
-				Patient patient = null;
-				int nodeId = 0;
-				map.spawn(patient, nodeId);
+				Patient patient = new Patient(2, 3);
+				map.spawn(patient);
 				// invalidate plan
 				plan = null;
 			}

@@ -1,23 +1,46 @@
 package model;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class CityMap {
 	public static void main(String[] args) {
 		Random r = new Random();
-		int numNodes = 4;
+		int numNodes = 10;
+		int numAmbs = 2;
+		int numPat = 1;
+		int numHos = 1;
 		double[][] adjMatrix = new double[numNodes][numNodes];
 		double[][] coordinates = new double[numNodes][NUM_COORD];
 		double[] demands = new double[numNodes];
-		ArrayList<?>[] contents = new ArrayList<?>[numNodes];
+		ArrayList<ArrayList<NodeContent>> contents = new ArrayList<>();
 
 		for (int node = 0; node < numNodes; node++) {
 			coordinates[node][X] = 10 * r.nextDouble();
 			coordinates[node][Y] = 10 * r.nextDouble();
 			demands[node] = r.nextInt(365);
-			contents[node] = new ArrayList<>();
+			contents.add(new ArrayList<>());
+		}
+		
+		for (int i = 0; i < numAmbs; i++) {
+			int node = r.nextInt(numNodes);
+			contents.get(node).add(new Ambulance(node));
+		}
+		
+		for (int i = 0; i < numPat; i++) {
+			int node = r.nextInt(numNodes);
+			contents.get(node).add(new Patient(node,r.nextInt(3)));
+		}
+		
+		for (int i = 0; i < numHos; i++) {
+			int node = r.nextInt(numNodes);
+			contents.get(node).add(new Hospital(node, 5));
 		}
 
 		for (int from = 0; from < numNodes; from++) {
@@ -36,10 +59,13 @@ public class CityMap {
 			}
 		}
 
-		CityMap map = new CityMap(adjMatrix, coordinates, (ArrayList<NodeContent>[]) contents, demands);
+		CityMap map = new CityMap(adjMatrix, coordinates, contents, demands);
 		System.out.println(map.represent(Print.ADJ_MATRIX));
 		System.out.println(map.represent(Print.SHORTEST_DISTANCES_MATRIX));
 		System.out.println(map.represent(Print.SHORTEST_PATHS));
+		System.out.println(map.represent(Print.AMBULANCES_LOCATIONS));
+		System.out.println(map.represent(Print.HOSPITAL_LOCATIONS));
+		System.out.println(map.represent(Print.PATIENT_LOCATIONS));
 		System.out.println(map.represent(Print.DEMANDS));
 	}
 
@@ -49,19 +75,20 @@ public class CityMap {
 
 	private final double[][] adjMatrix;
 	private final double[] demands;
-	private final ArrayList<NodeContent>[] contents;
+	private final List<ArrayList<NodeContent>> contents;
 	private final double[][] shortestDistances;
 	private final ArrayList<?>[][] shortestsPaths; // ? will be integers
 	private final int nodeCount;
 	private final int ambulanceCount;
 	private final int hospitalCount;
 
-	public CityMap(double[][] adjMatrix, double[][] coordinates, ArrayList<NodeContent>[] contents, double[] demands) {
+	public CityMap(double[][] adjMatrix, double[][] coordinates, ArrayList<ArrayList<NodeContent>> contents,
+			double[] demands) {
 		nodeCount = adjMatrix.length;
-		ambulanceCount = (int) Arrays.stream(contents).flatMap(list -> list.stream())
-				.filter(nc -> nc instanceof Ambulance).count();
-		hospitalCount = (int) Arrays.stream(contents).flatMap(list -> list.stream())
-				.filter(nc -> nc instanceof Hospital).count();
+		ambulanceCount = (int) contents.stream().flatMap(list -> list.stream()).filter(nc -> nc instanceof Ambulance)
+				.count();
+		hospitalCount = (int) contents.stream().flatMap(list -> list.stream()).filter(nc -> nc instanceof Hospital)
+				.count();
 
 		this.demands = demands;
 		this.adjMatrix = adjMatrix;
@@ -81,32 +108,23 @@ public class CityMap {
 	}
 
 	public int patientCount() {
-		return (int) Arrays.stream(contents).flatMap(list -> list.stream()).filter(nc -> nc instanceof Ambulance)
-				.count();
+		return (int) contents.stream().flatMap(list -> list.stream()).filter(nc -> nc instanceof Ambulance).count();
 	}
 
 	public int nodesCount() {
 		return nodeCount;
 	}
 
-	public double getDemands(int node) {
+	public double getDemand(int node) {
 		return demands[node];
 	}
 
-	public void spawn(Patient patient, int nodeId) {
-		contents[nodeId].add(patient);
+	public void spawn(Patient patient) {
+		contents.get(patient.getNode()).add(patient);
 	}
 
-	public List<Integer> getAmbulancesLocations() {
-		return getLocationsOf(Ambulance.class);
-	}
-
-	public List<Integer> getHospitalLocations() {
-		return getLocationsOf(Ambulance.class);
-	}
-
-	public List<Integer> getPatientLocations() {
-		return getLocationsOf(Ambulance.class);
+	public List<Double> getDemands() {
+		return Arrays.stream(demands).boxed().collect(Collectors.toList());
 	}
 
 	public List<Ambulance> getAmbulances() {
@@ -122,19 +140,8 @@ public class CityMap {
 	}
 
 	public <T extends NodeContent> List<T> getSpecificContent(Class<T> klass) {
-		return (List<T>) Arrays.stream(contents).flatMap(Collection::stream)
-				.filter(klass::isInstance)
+		return (List<T>) contents.stream().flatMap(Collection::stream).filter(klass::isInstance)
 				.collect(Collectors.toList());
-	}
-
-	private List<Integer> getLocationsOf(Class<? extends NodeContent> klass) {
-		List<Integer> result = new ArrayList<>();
-		IntStream.range(0, nodeCount).forEach(node -> {
-			for (int count = 0; count < contents[node].stream().filter(nc -> klass.isInstance(nc)).count(); count++) {
-				result.add(node);
-			}
-		});
-		return result;
 	}
 
 	public double shortestDistance(int from, int to) {
@@ -207,12 +214,14 @@ public class CityMap {
 			// generate all paths backtracking on previousNode
 			for (int endNode = 0; endNode < nodeCount; endNode++) {
 				ArrayList<Integer> path = new ArrayList<Integer>();
+				if (Double.isFinite(shortestDistances[startNode][endNode])) {					
 				int intermediateNode = endNode;
 				while (intermediateNode >= 0 && previousNode[intermediateNode] >= 0) {
 					path.add(0, intermediateNode);
 					intermediateNode = previousNode[intermediateNode];
 				}
 				path.add(0, intermediateNode);
+				}
 				shortestsPaths[startNode][endNode] = path;
 			}
 		}
@@ -225,38 +234,39 @@ public class CityMap {
 		case ADJ_MATRIX:
 		case SHORTEST_DISTANCES_MATRIX:
 			double[][] matrix = what == Print.ADJ_MATRIX ? adjMatrix : shortestDistances;
-
+			sb.append(what == Print.ADJ_MATRIX ? "adjMatrix\n" : "shortestDistances\n");
 			sb.append(IntStream.range(0, nodeCount).mapToObj(Integer::toString)
 					.collect(Collectors.joining("\t", "\t", "\n")));
 			sb.append(IntStream.range(0, nodeCount)
 					.mapToObj(from -> IntStream.range(0, nodeCount).mapToDouble(to -> matrix[from][to])
-							.mapToObj(d -> d < 0 ? "-" : String.format("%+.2f", d))
+							.mapToObj(d -> Double.isInfinite(d) || d < 0 ? "-" : String.format("%+.2f", d))
 							.collect(Collectors.joining("\t", from + "\t", "")))
 					.collect(Collectors.joining("\n")));
 			break;
 		case SHORTEST_PATHS:
+			sb.append("Shortest paths\n");
 			IntStream.range(0, nodeCount)
 					.forEachOrdered(from -> IntStream.range(0, nodeCount).forEachOrdered(to -> sb.append(String.format(
 							"N%d -> N%d (%.3f): %s\n", from, to, shortestDistances[from][to],
 							shortestsPaths[from][to].stream().map(n -> "N" + n).collect(Collectors.joining(","))))));
 			break;
 		case AMBULANCES_LOCATIONS:
-			sb.append(getAmbulancesLocations().toString());
-			sb.append("\n");
+			sb.append(getAmbulances().stream().map(NodeContent::getNode).map(Object::toString)
+					.collect(Collectors.joining(", ", "Ambulances [", "]")));
 			break;
 		case HOSPITAL_LOCATIONS:
-			sb.append(getHospitalLocations().toString());
-			sb.append("\n");
+			sb.append(getHospitals().stream().map(NodeContent::getNode).map(Object::toString)
+					.collect(Collectors.joining(", ", "Hospitals [", "]")));
 			break;
 		case PATIENT_LOCATIONS:
-			sb.append(getPatientLocations().toString());
-			sb.append("\n");
+			sb.append(getPatients().stream().map(NodeContent::getNode).map(Object::toString)
+					.collect(Collectors.joining(", ", "Patients [", "]")));
 			break;
 		case DEMANDS:
 			sb.append(IntStream.range(0, nodeCount).mapToObj(Integer::toString)
-					.collect(Collectors.joining("\t", "", "\n")));
+					.collect(Collectors.joining("\t", "Demands: ", "\n")));
 			sb.append(IntStream.range(0, nodeCount).mapToDouble(n -> demands[n]).mapToObj(Double::toString)
-					.collect(Collectors.joining("\t", "", "")));
+					.collect(Collectors.joining("\t", "         ", "")));
 			break;
 		default:
 			break;

@@ -20,7 +20,7 @@ private static int ID = 0;
 	
 	// package-private methods
 	
-	Patient(int node, int severity) {
+	public Patient(int node, int severity) {
 		this(node, ID++, severity);
 	}
 	
