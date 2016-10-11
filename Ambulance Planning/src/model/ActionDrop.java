@@ -3,10 +3,10 @@ package model;
 public class ActionDrop extends Action {
 	
 	private Ambulance ambulance;
-	private Node at;
+	private int at;
 	private Patient p;
 
-	public ActionDrop(Ambulance a, Node at, Patient p) {
+	public ActionDrop(Ambulance a, int at, Patient p) {
 		this.ambulance = a;
 		this.at = at;
 		this.p = p;
