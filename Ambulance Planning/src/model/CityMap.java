@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class CityMap {
-	public static void main(String[] args) {
+	public static CityMap randomize() {
 		Random r = new Random();
 		int numNodes = 10;
 		int numAmbs = 2;
@@ -67,6 +67,8 @@ public class CityMap {
 		System.out.println(map.represent(Print.HOSPITAL_LOCATIONS));
 		System.out.println(map.represent(Print.PATIENT_LOCATIONS));
 		System.out.println(map.represent(Print.DEMANDS));
+		
+		return map;
 	}
 
 	public static final int X = 0;
