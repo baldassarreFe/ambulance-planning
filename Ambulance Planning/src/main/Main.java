@@ -27,9 +27,10 @@ public class Main {
 		List<Action> plan = null;
 		do {
 			// if we don't have a plan make one
-			if (plan == null)
-//				plan = p.solve(map);  // todo: run the new planner
-			
+			if (plan == null) {
+//				plan = p.solve(map);  // todo: run with the new map
+			}
+
 			// print full plan
 			for (Action action : plan) {
 				System.out.println(action);
