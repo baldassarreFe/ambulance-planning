@@ -7,7 +7,7 @@ package model;
  * @author federico
  *
  */
-public class Ambulance implements NodeContent {
+public class Ambulance extends NodeContent {
 	private static int ID = 0;
 	
 	private final int id;
@@ -36,11 +36,12 @@ public class Ambulance implements NodeContent {
 
 	// package-private methods
 	
-	Ambulance() {
-		this(ID++, null, true);
+	Ambulance(int node) {
+		this(node, ID++, null, true);
 	}
 	
-	Ambulance(int id, Patient patient, boolean clean) {
+	Ambulance(int node, int id, Patient patient, boolean clean) {
+		super(node);
 		this.id = id;
 		this.patient = patient;
 		this.clean = clean;

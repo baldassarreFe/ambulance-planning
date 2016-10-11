@@ -17,11 +17,11 @@ public class PSOPlanner extends Planner {
 	private PSO pso;
 	private PSO.PSOEvaluator evaluator;
 
-	private CityMap map;
+	private CityMap2 map;
 
-	private List<Node> ambulances;
-	private List<Node> patients;
-	private List<Node> hospitals;
+	private List<Ambulance> ambulances;
+	private List<Patient> patients;
+	private List<Hospital> hospitals;
 	private int ambCnt;
 	private int patCnt;
 	private int hosCnt;
@@ -35,13 +35,13 @@ public class PSOPlanner extends Planner {
 	private double[] singleOptHospitalsDist;
 
 	@Override
-	public List<Action> solve(CityMap map) {
+	public List<Action> solve(CityMap2 map) {
 		this.map = map;
 
 		// todo: (!!!) this is not the correct way to get lists of all ambulances/patients/hospitals
-		ambulances = map.getAmbulancesLocation();
-		patients = map.getPatientsLocation();
-		hospitals = map.getHospitalsLocation();
+		ambulances = map.getAmbulances();
+		patients = map.getPatients();
+		hospitals = map.getHospitals();
 		ambCnt = ambulances.size();
 		patCnt = patients.size();
 		hosCnt = hospitals.size();
@@ -76,9 +76,9 @@ public class PSOPlanner extends Planner {
 		 */
 		double minX = Double.POSITIVE_INFINITY, maxX = Double.NEGATIVE_INFINITY;
 		double minY = Double.POSITIVE_INFINITY, maxY = Double.NEGATIVE_INFINITY;
-		for (Node node : map.getNodes()) {
-			double x = node.getX();
-			double y = node.getY();
+		for (int node = 0; node < map.nodesCount(); node++) {
+			double x = 0; // todo: !!! map.getX(node);
+			double y = 0; // todo: !!! map.getY(node);
 			minX = Math.min(minX, x);
 			maxX = Math.max(maxX, x);
 			minY = Math.min(minY, y);
@@ -118,8 +118,8 @@ public class PSOPlanner extends Planner {
 				optHospitals[i][j] = -1;
 				for (int k = 0; k < hosCnt; k++) {
 					if (isValidHospital(patients.get(i), hospitals.get(k))) {
-						double curDist = shortestPath(patients.get(i), hospitals.get(k)).getDistance()
-								+ shortestPath(hospitals.get(k), patients.get(j)).getDistance();
+						double curDist = shortestDistance(patients.get(i), hospitals.get(k))
+								+ shortestDistance(hospitals.get(k), patients.get(j));
 						if (optHospitals[i][j] == -1 || optHospitalsDist[i][j] > curDist) {
 							optHospitals[i][j] = k;
 							optHospitalsDist[i][j] = curDist;
@@ -130,7 +130,7 @@ public class PSOPlanner extends Planner {
 			singleOptHospitals[i] = -1;
 			for (int k = 0; k < hosCnt; k++) {
 				if (isValidHospital(patients.get(i), hospitals.get(k))) {
-					double curDist = shortestPath(patients.get(i), hospitals.get(k)).getDistance();
+					double curDist = shortestDistance(patients.get(i), hospitals.get(k));
 					if (singleOptHospitals[i] == -1 || singleOptHospitalsDist[i] > curDist) {
 						singleOptHospitals[i] = k;
 						singleOptHospitalsDist[i] = curDist;
@@ -143,7 +143,7 @@ public class PSOPlanner extends Planner {
 	/**
 	 * Check if the given hospital can accept the given patient.
 	 */
-	private boolean isValidHospital(Node patient, Node hospital) {
+	private boolean isValidHospital(Patient patient, Hospital hospital) {
 		/*
 		 * Currently every hospital can take care of any patient.
 		 */
@@ -213,31 +213,31 @@ public class PSOPlanner extends Planner {
 	 * Method does not change the given list.
 	 *
 	 * @param ambPlan list of patients to visit
-	 * @param amb     index of an ambulance
-	 * @param pat     new patient
+	 * @param ambIdx index of an ambulance
+	 * @param patIdx new patient
 	 * @return pair of insertion index and planCost delta
 	 */
-	private Pair<Integer, Double> tryInsert(List<Integer> ambPlan, int amb, int pat) {
-		Node ambNode = ambulances.get(amb);
-		Node patNode = patients.get(pat);
+	private Pair<Integer, Double> tryInsert(List<Integer> ambPlan, int ambIdx, int patIdx) {
+		Ambulance amb = ambulances.get(ambIdx);
+		Patient pat = patients.get(patIdx);
 		/*
 		 * Special case of empty routes.
 		 */
 		if (ambPlan.size() == 0) {
-			return new Pair<>(0, shortestPath(ambNode, patNode).getDistance());
+			return new Pair<>(0, shortestDistance(amb, pat));
 		}
 		/*
 		 * Find bounds where patient can be placed considering his priority.
 		 * Can use two binary searches, but that is unnecessary.
 		 */
-		int patPriority = patients.get(pat).getRequest();
+		int patSeverity = patients.get(patIdx).getSeverity();
 		int l = 0;
 		int r = 0;
 		for (; r < ambPlan.size(); r++) {
-			int p = patients.get(ambPlan.get(r)).getRequest();
-			if (patPriority > p) {
+			int p = patients.get(ambPlan.get(r)).getSeverity();
+			if (patSeverity > p) {
 				break;
-			} else if (patPriority < p) {
+			} else if (patSeverity < p) {
 				l = r + 1;
 			}
 		}
@@ -250,21 +250,21 @@ public class PSOPlanner extends Planner {
 			double diff;
 			if (i == 0) {
 				int next = ambPlan.get(i);
-				Node nextNode = patients.get(next);
-				diff = -shortestPath(ambNode, nextNode).getDistance()
-						+ shortestPath(ambNode, patNode).getDistance()
-						+ optHospitalsDist[pat][next];
+				Patient nextNode = patients.get(next);
+				diff = -shortestDistance(amb, nextNode)
+						+ shortestDistance(amb, pat)
+						+ optHospitalsDist[patIdx][next];
 			} else if (i == ambPlan.size()) {
 				int prev = ambPlan.get(i - 1);
 				diff = -singleOptHospitalsDist[prev]
-						+ optHospitalsDist[prev][pat]
-						+ singleOptHospitalsDist[pat];
+						+ optHospitalsDist[prev][patIdx]
+						+ singleOptHospitalsDist[patIdx];
 			} else {
 				int prev = ambPlan.get(i - 1);
 				int next = ambPlan.get(i);
 				diff = -optHospitalsDist[prev][next]
-						+ optHospitalsDist[prev][pat]
-						+ optHospitalsDist[pat][next];
+						+ optHospitalsDist[prev][patIdx]
+						+ optHospitalsDist[patIdx][next];
 			}
 			if (pair == null || pair.y > diff) {
 				pair = new Pair<>(i, diff);
@@ -286,9 +286,9 @@ public class PSOPlanner extends Planner {
 		 */
 		double[][] dist = new double[patCnt][ambCnt];
 		for (int i = 0; i < patCnt; i++) {
-			Node patient = patients.get(i);
-			double px = patient.getX();
-			double py = patient.getY();
+			Patient patient = patients.get(i);
+			double px = 0; // todo: !!! patient.getX();
+			double py = 0; // todo: !!! patient.getY();
 			for (int j = 0; j < ambCnt; j++) {
 				double ax = ambDims[j * 2];
 				double ay = ambDims[j * 2 + 1];
@@ -330,10 +330,10 @@ public class PSOPlanner extends Planner {
 
 
 	/**
-	 * Wrapper for shortestPath method in CityMap.
+	 * Wrapper for shortestDistance method in CityMap.
 	 */
-	private Path shortestPath(Node a, Node b) {
-		return map.shortestPath(a.getId(), b.getId());
+	private double shortestDistance(NodeContent a, NodeContent b) {
+		return map.shortestDistance(a.getNode(), b.getNode());
 	}
 
 

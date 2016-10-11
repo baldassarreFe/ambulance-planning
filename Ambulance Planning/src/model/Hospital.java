@@ -1,6 +1,6 @@
 package model;
 
-public class Hospital implements NodeContent {
+public class Hospital extends NodeContent {
 private static int ID = 0;
 	
 	private final int id;
@@ -20,11 +20,12 @@ private static int ID = 0;
 	
 	// package-private methods
 	
-	Hospital(int maxSeverity) {
-		this(++ID, maxSeverity);
+	Hospital(int node, int maxSeverity) {
+		this(node, ++ID, maxSeverity);
 	}
 	
-	Hospital(int id, int maxSeverity) {
+	Hospital(int node, int id, int maxSeverity) {
+		super(node);
 		this.id = id;
 		this.maxSeverity = maxSeverity;
 	}

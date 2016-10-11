@@ -1,10 +1,6 @@
 package model;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -111,6 +107,24 @@ public class CityMap2 {
 
 	public List<Integer> getPatientLocations() {
 		return getLocationsOf(Ambulance.class);
+	}
+
+	public List<Ambulance> getAmbulances() {
+		return getSpecificContent(Ambulance.class);
+	}
+
+	public List<Patient> getPatients() {
+		return getSpecificContent(Patient.class);
+	}
+
+	public List<Hospital> getHospitals() {
+		return getSpecificContent(Hospital.class);
+	}
+
+	public <T extends NodeContent> List<T> getSpecificContent(Class<T> klass) {
+		return (List<T>) Arrays.stream(contents).flatMap(Collection::stream)
+				.filter(klass::isInstance)
+				.collect(Collectors.toList());
 	}
 
 	private List<Integer> getLocationsOf(Class<? extends NodeContent> klass) {
