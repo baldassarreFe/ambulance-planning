@@ -17,7 +17,7 @@ public class PSOPlanner extends Planner {
 	private PSO pso;
 	private PSO.PSOEvaluator evaluator;
 
-	private CityMap2 map;
+	private CityMap map;
 
 	private List<Ambulance> ambulances;
 	private List<Patient> patients;
@@ -35,7 +35,7 @@ public class PSOPlanner extends Planner {
 	private double[] singleOptHospitalsDist;
 
 	@Override
-	public List<Action> solve(CityMap2 map) {
+	public List<Action> solve(CityMap map) {
 		this.map = map;
 
 		// todo: (!!!) this is not the correct way to get lists of all ambulances/patients/hospitals

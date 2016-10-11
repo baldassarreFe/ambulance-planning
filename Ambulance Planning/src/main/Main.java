@@ -28,7 +28,7 @@ public class Main {
 		do {
 			// if we don't have a plan make one
 			if (plan == null) {
-//				plan = p.solve(map);  // todo: run with the new map
+				plan = p.solve(map);
 			}
 
 			// print full plan
