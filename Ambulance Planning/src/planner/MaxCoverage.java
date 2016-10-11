@@ -118,7 +118,7 @@ public class MaxCoverage {
 		{
 			int[] optLocations = findMaxCoverageLocations(numAmbulances, distance, demandNorm, demand);
 			int[][] ambulancePlan = new int[optLocations.length][3];
-			ambulancePlan = rearrange(ambID, ambulanceLocations, optLocations, distance);
+			ambulancePlan = rearrangeHungarian(ambID, ambulanceLocations, optLocations, distance);
 			
 			for(int i = 0; i<optLocations.length; i++)
 			{
@@ -138,7 +138,7 @@ public class MaxCoverage {
 	 * @params ambulanceLocations - array of ambulance locations
 	 * @params optLocations - array of optimal locations found out by the algorithm
 	 * @params distance - the shortest path distance matrix
-	 * returns a plan for each available ambulance
+	 * returns a plan for each available ambulance - NAIVE approach
 	 */
 	public static int[][] rearrange(int[] ambID, int[] ambulanceLocations, int[] optLocations, double[][] distance) {
 		
@@ -194,6 +194,54 @@ public class MaxCoverage {
 		return planRearrange;
 	}
 
+	/*
+	 * returns the plan for the ambulances
+	 * @params ambID - array of ambulance IDS
+	 * @params ambulanceLocations - array of ambulance locations
+	 * @params optLocations - array of optimal locations found out by the algorithm
+	 * @params distance - the shortest path distance matrix
+	 * returns a plan for each available ambulance - using the HUNGARIAN ALGO
+	 */
+	public static int[][] rearrangeHungarian(int[] ambID, int[] ambulanceLocations, int[] optLocations, double[][] distance) {
+		
+		int numAmb = ambID.length;
+		int[][] costMat = new int[numAmb][numAmb];
+		int[][] planRearrange = new int[optLocations.length][3];
+		
+		for(int i = 0; i<numAmb; i++)
+		{
+			for(int j = 0; j<numAmb; j++)
+			{
+				costMat[i][j] = (int)Math.round(distance[ambulanceLocations[i]][optLocations[j]]);
+			}
+		}
+		
+		int[] ambFinalLoc = AssignmentProblemSolver.solve(costMat);
+		
+		//construct plan rearrange
+		for(int i = 0; i<numAmb; i++)
+		{
+			for(int j = 0; j<numAmb; j++)
+			{
+				if(j==0)
+				{
+					planRearrange[i][j] = ambID[i];
+				}
+				else if(j==1)
+				{
+					planRearrange[i][j] = ambulanceLocations[i];
+				}
+				else
+				{
+					planRearrange[i][j] = optLocations[ambFinalLoc[i]];
+				}
+			}
+		}
+		
+		return planRearrange;
+	}
+	
+	
 	/*
 	 * Utility fn for the rearrange function
 	 */
