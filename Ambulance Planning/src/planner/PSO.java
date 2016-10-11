@@ -22,7 +22,7 @@ public class PSO {
 
 	private double[][] localBest;
 	private double[] globalBest;
-	private int[] localBestIteration;  // todo: use to re-init bad outdated particles
+	private int[] localBestIteration;  // todo: use to re-init bad outdated particles (not necessary)
 	private int globalBestIteration;
 	private double[] localBestEval;
 	private double globalBestEval;
@@ -116,7 +116,7 @@ public class PSO {
 		for (int it = 0; it < settings.MAX_ITER
 				&& iteration - globalBestIteration < settings.GLOBAL_ITER_THRES
 				&& System.currentTimeMillis() - algorithmStartTime < millis;
-				it++) {
+			 it++) {
 			performIteration();
 		}
 
@@ -153,7 +153,7 @@ public class PSO {
 	private void updateValues() {
 		for (int i = 0; i < swarmSize; i++) {
 			double curEval = evaluator.evaluate(particles[i]);
-			if (curEval <localBestEval[i]) {
+			if (curEval < localBestEval[i]) {
 				localBest[i] = Arrays.copyOf(particles[i], particleDims);
 				localBestEval[i] = curEval;
 				localBestIteration[i] = iteration;
@@ -192,7 +192,7 @@ public class PSO {
 
 	/**
 	 * Constants for PSO algorithm.
-	 *
+	 * <p>
 	 * Settings example:
 	 * {MAX_ITER = 0; SWARM_SIZE = N} - generate N random points and simply choose the best one ("turn off PSO").
 	 */
