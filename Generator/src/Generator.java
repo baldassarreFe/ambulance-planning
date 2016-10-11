@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Random;
 
 /**
@@ -12,6 +13,7 @@ import java.util.Random;
 public class Generator {
 	
 	static Random r = new Random();
+	private static HashMap<Pair<Integer, Integer>, Integer> coordToNode = new HashMap<>();
 	
 	/* Constants */
 	private static final double INIT_PATIENTS = .6;
@@ -142,10 +144,13 @@ public class Generator {
 		
 		/* Initialize Erdos */
 		Pair<Integer, Integer> p = posCoord.get(0);
+		coordToNode.put(p, 0);
 		s = s.concat(locationString(0, p, demand, locationDemand));
 		
 		p = posCoord.get(1);
+		coordToNode.put(p, 1);
 		s = s.concat(locationString(1, p, demand, locationDemand));
+		
 		
 		s = s.concat(roadString(0,1, posCoord, noise));
 		
@@ -153,6 +158,7 @@ public class Generator {
 		/* Erdos algorithm */
 		for(int i = 2; i < nodes; i++) {
 			p = posCoord.get(i);
+			coordToNode.put(p, i);
 			s = s.concat(locationString(i, p, demand, locationDemand));
 			
 			// Choose random connection
@@ -165,7 +171,7 @@ public class Generator {
 	
 	/**
 	 * Generates definitions of objects.
-	 * Patients -> Patient(p1,priority,time_lapse)
+	 * Patients -> Patient(p1,priority)
 	 * Ambulances -> Ambulance(a1)
 	 * Hospitals -> Hospital(h1)
 	 * 
@@ -190,11 +196,13 @@ public class Generator {
 				priority = 3;
 			
 			// Time_lapse
+			/*
 			int time = 0;
 			if (r.nextDouble() > INIT_PATIENTS) 
 				time = r.nextInt(MAX_ROUNDS);			
 			
-			s.append("(Patient(p" + i + "," + priority + "," + time +"))\n");
+			s.append("(Patient(p" + i + "," + priority + "," + time +"))\n");*/
+			s.append("(Patient(p" + i + "," + priority + "))\n");
 		}
 		
 		/* Ambulances */
@@ -213,7 +221,7 @@ public class Generator {
 	
 	/**
 	 * Generates initial positions for every object.
-	 * At(Oi,x,y)
+	 * At(Oi,l1)
 	 * 
 	 * @param patient Information regarding number of patients and prob of each priority
 	 * @param amb Number of ambulances
@@ -250,8 +258,9 @@ public class Generator {
 				Pair<Integer, Integer> location = lDemand.get(d).get(l);
 				patientLoc.add(location);
 				
+				int node = coordToNode.get(location);				
 				for(int n = 0 ; n < nPatients && p < patients; n++, p++) {
-					s.append("(At(p" + p + "," + location.x + "," + location.y + "))\n");
+					s.append("(At(p" + p + ",l" + node + "))\n");
 				}
 			}
 		}
@@ -281,11 +290,10 @@ public class Generator {
 		Collections.shuffle(loc);
 		for(int i = 0; i < amb; i++){
 			
-			int randLoc = r.nextInt(loc.size());			
-			int x = loc.get(randLoc).x;
-			int y = loc.get(randLoc).y;
+			int randLoc = r.nextInt(loc.size());	
+			int node = coordToNode.get(loc.get(randLoc));	
 			
-			s.append("(At(a" + i + "," + x + "," + y + "))\n");
+			s.append("(At(a" + i + ",l" + node + "))\n");
 			s.append("(Available(a" + i + "))\n");
 		}
 		
@@ -293,11 +301,10 @@ public class Generator {
 		Collections.shuffle(loc);
 		for(int i = 0; i < hosp; i++){
 
-			int randLoc = r.nextInt(loc.size());			
-			int x = loc.get(randLoc).x;
-			int y = loc.get(randLoc).y;
+			int randLoc = r.nextInt(loc.size());	
+			int node = coordToNode.get(loc.get(randLoc));	
 			
-			s.append("(At(h" + i + "," + x + "," + y + "))\n");
+			s.append("(At(h" + i + ",l" + node + "))\n");
 		}
 		s.append(")\n"); // Close init
 		
