@@ -38,7 +38,6 @@ public class PSOPlanner extends Planner {
 	public List<Action> solve(CityMap map) {
 		this.map = map;
 
-		// todo: (!!!) this is not the correct way to get lists of all ambulances/patients/hospitals
 		ambulances = map.getAmbulances();
 		patients = map.getPatients();
 		hospitals = map.getHospitals();
@@ -47,7 +46,7 @@ public class PSOPlanner extends Planner {
 		hosCnt = hospitals.size();
 
 		// Handle bounds for particles
-		particleDims = ambCnt * 2 + patCnt;
+		particleDims = patCnt;
 		buildBounds();
 
 		precalcOptimalHospitals();
@@ -70,31 +69,7 @@ public class PSOPlanner extends Planner {
 	 */
 	private void buildBounds() {
 		particleBounds = new double[particleDims][2];
-
-		/*
-		 * Get bounding box for the map.
-		 */
-		double minX = Double.POSITIVE_INFINITY, maxX = Double.NEGATIVE_INFINITY;
-		double minY = Double.POSITIVE_INFINITY, maxY = Double.NEGATIVE_INFINITY;
-		for (int node = 0; node < map.nodesCount(); node++) {
-			double x = 0; // todo: !!! map.getX(node);
-			double y = 0; // todo: !!! map.getY(node);
-			minX = Math.min(minX, x);
-			maxX = Math.max(maxX, x);
-			minY = Math.min(minY, y);
-			maxY = Math.max(maxY, y);
-		}
-
-		/*
-		 * Set correct values in particleBounds.
-		 */
-		for (int i = 0; i < ambCnt * 2; i += 2) {
-			particleBounds[i][0] = minX;
-			particleBounds[i][1] = maxX;
-			particleBounds[i + 1][0] = minY;
-			particleBounds[i + 1][1] = maxY;
-		}
-		for (int i = ambCnt * 2; i < ambCnt * 2 + patCnt; i++) {
+		for (int i = 0; i < patCnt; i++) {
 			particleBounds[i][0] = 0;
 			particleBounds[i][1] = 1;
 		}
@@ -159,21 +134,10 @@ public class PSOPlanner extends Planner {
 	 */
 	private Plan decodePlan(double[] particle) {
 		/*
-		 * Split particle into specific subarrays.
-		 */
-		double[] ambDims = Arrays.copyOfRange(particle, 0, ambCnt * 2); // todo: maybe try to remove this part and use current ambulances' coordinates
-		double[] patDims = Arrays.copyOfRange(particle, ambCnt * 2, ambCnt * 2 + patCnt);
-
-		/*
 		 * Sort patients according to their priorities (here priorities are numbers from patDims, they are not
 		 * the same as real patient priorities).
 		 */
-		int[] patientsSorted = Utils.getSortedIndices(patDims);
-
-		/*
-		 * Get matrix of ambulance priorities for each patient, according to ambulances "positions" from the particle.
-		 */
-		int[][] ambPriorities = getAmbPriorities(ambDims);
+		int[] patientsSorted = Utils.getSortedIndices(particle);
 
 		/*
 		 * Add patients to the routes.
@@ -182,16 +146,14 @@ public class PSOPlanner extends Planner {
 		for (int patient : patientsSorted) {
 			// Insert the patient into the routes.
 			// Test only first few ambulances (currently: at least 2, but not more than 33% or 10)
-			int ambsToTest = Math.max(Math.min(ambCnt, 2), Math.min(ambCnt / 3, 10));
 			double bestInsertionCost = Double.POSITIVE_INFINITY;
 			int insertionAmbulance = -1;
 			int insertionIndex = -1;
-			for (int i = 0; i < ambsToTest; i++) {
-				int ambulance = ambPriorities[patient][i];
-				Pair<Integer, Double> curInsertion = tryInsert(plan.routes[ambulance], ambulance, patient);
+			for (int ambIdx = 0; ambIdx < ambCnt; ambIdx++) {
+				Pair<Integer, Double> curInsertion = tryInsert(plan.routes[ambIdx], ambIdx, patient);
 				if (curInsertion.y < bestInsertionCost) {
 					bestInsertionCost = curInsertion.y;
-					insertionAmbulance = ambulance;
+					insertionAmbulance = ambIdx;
 					insertionIndex = curInsertion.x;
 				}
 			}
@@ -204,6 +166,11 @@ public class PSOPlanner extends Planner {
 
 		}
 
+		/*
+		 * Apply optimizations.
+		 */
+		plan = applyOptimizations(plan);
+
 		return plan;
 	}
 
@@ -213,8 +180,8 @@ public class PSOPlanner extends Planner {
 	 * Method does not change the given list.
 	 *
 	 * @param ambPlan list of patients to visit
-	 * @param ambIdx index of an ambulance
-	 * @param patIdx new patient
+	 * @param ambIdx  index of an ambulance
+	 * @param patIdx  new patient
 	 * @return pair of insertion index and planCost delta
 	 */
 	private Pair<Integer, Double> tryInsert(List<Integer> ambPlan, int ambIdx, int patIdx) {
@@ -277,38 +244,6 @@ public class PSOPlanner extends Planner {
 	}
 
 	/**
-	 * Get matrix of ambulance priorities for each patient, according to ambulances "positions" from the particle.
-	 */
-	private int[][] getAmbPriorities(double[] ambDims) {
-		/*
-		 * Fill 'distances' array.
-		 * dist[i][j] - squared distance from ith patient to jth ambulance's point.
-		 */
-		double[][] dist = new double[patCnt][ambCnt];
-		for (int i = 0; i < patCnt; i++) {
-			Patient patient = patients.get(i);
-			double px = 0; // todo: !!! patient.getX();
-			double py = 0; // todo: !!! patient.getY();
-			for (int j = 0; j < ambCnt; j++) {
-				double ax = ambDims[j * 2];
-				double ay = ambDims[j * 2 + 1];
-				dist[i][j] = Utils.distSqr(px, py, ax, ay);
-			}
-		}
-
-		/*
-		 * Fill matrix of priorities.
-		 * priorities[i] - array of ambulances' indices for ith patient.
-		 */
-		int[][] priorities = new int[patCnt][ambCnt];
-		for (int i = 0; i < patCnt; i++) {
-			priorities[i] = Utils.getSortedIndices(dist[i]);
-		}
-
-		return priorities;
-	}
-
-	/**
 	 * Evaluate the routes.
 	 *
 	 * @param plan list of actions
@@ -321,11 +256,101 @@ public class PSOPlanner extends Planner {
 	/**
 	 * Apply additional heuristics to enhance the existing routes.
 	 *
-	 * @param plan current routes
-	 * @return improved routes
+	 * @param plan current plan
+	 * @return improved plan
 	 */
-	private List<Action> applyOptimizations(List<Action> plan) {
-		return plan;  // todo: when main part works, implement this (2-opt, for example) (it's an important part)
+	private Plan applyOptimizations(Plan plan) {
+		for (int i = 0; i < plan.routes.length; i++) {
+			while (true) {
+				Pair<List<Integer>, Double> update = twoOpt(ambulances.get(i), plan.routes[i]);
+				if (update == null) {
+					break;
+				}
+				plan.routes[i] = update.x;
+				plan.planCost += update.y;
+			}
+		}
+		return plan;
+	}
+
+	/**
+	 * Apply 2-opt optimization to a given plan.
+	 * <p>
+	 * Tries to reverse some parts of paths.
+	 *
+	 * @param route current route
+	 * @return pair of improved route and how much the score is improved, or null if no improvement found
+	 */
+	private Pair<List<Integer>, Double> twoOpt(Ambulance amb, List<Integer> route) {
+		if (route.size() < 2) {
+			return null;
+		}
+		/*
+		 * Precalculate some costs.
+		 *
+		 * l < r
+		 * Route from l to r costs prefixSumCost[r] - prefixSumCost[l].
+		 * Route from r to l (reversed order) costs revSumCost[l] - revSumCost[r].
+		 */
+		double[] prefixSumCost = new double[route.size()];
+		for (int i = 1; i < route.size(); i++) {
+			prefixSumCost[i] = prefixSumCost[i - 1] +
+					optHospitalsDist[route.get(i - 1)][route.get(i)];
+		}
+		double[] revSumCost = new double[route.size()];
+		for (int i = route.size() - 2; i >= 0; i--) {
+			revSumCost[i] = revSumCost[i + 1] +
+					optHospitalsDist[route.get(i + 1)][route.get(i)];
+		}
+
+		double bestCostUpd = 0;
+		int bestL = -1, bestR = -1;
+		for (int l = 0; l < route.size(); l++) {
+			for (int r = l + 1; r < route.size(); r++) {
+				// try revert [l; r] patients
+				double curCostUpd = 0;
+				if (l == 0) {
+					curCostUpd -= shortestDistance(amb, patients.get(route.get(l)));
+					curCostUpd += shortestDistance(amb, patients.get(route.get(r)));
+				} else {
+					curCostUpd -= optHospitalsDist[route.get(l - 1)][route.get(l)];
+					curCostUpd += optHospitalsDist[route.get(l - 1)][route.get(r)];
+				}
+				curCostUpd -= prefixSumCost[r] - prefixSumCost[l];
+				curCostUpd += revSumCost[l] - revSumCost[r];
+				if (r == route.size() - 1) {
+					curCostUpd -= singleOptHospitalsDist[route.get(r)];
+					curCostUpd += singleOptHospitalsDist[route.get(l)];
+				} else {
+					curCostUpd -= optHospitalsDist[route.get(r)][route.get(r + 1)];
+					curCostUpd += optHospitalsDist[route.get(l)][route.get(r + 1)];
+				}
+				if (curCostUpd < -1e-7 && curCostUpd < bestCostUpd) {
+					bestCostUpd = curCostUpd;
+					bestL = l;
+					bestR = r;
+				}
+			}
+		}
+
+		if (bestL == -1) {
+			return null;
+		}
+
+		/*
+		 * Return best found result.
+		 */
+		List<Integer> result = new ArrayList<>();
+		for (int i = 0; i < bestL; i++) {
+			result.add(route.get(i));
+		}
+		for (int i = bestR; i >= bestL; i--) {
+			result.add(route.get(i));
+		}
+		for (int i = bestR + 1; i < route.size(); i++) {
+			result.add(route.get(i));
+		}
+		return new Pair<>(result, bestCostUpd);
 	}
 
 
@@ -377,14 +402,49 @@ public class PSOPlanner extends Planner {
 
 			List<Action> actions = new ArrayList<>();
 
-			// todo
+			for (int i = 0; i < ambCnt; i++) {
+				Ambulance amb = ambulances.get(i);
+				if (routes[i].size() == 0) {
+					continue;
+				}
+				// Pick first patient
+				int patIdx = routes[i].get(0);
+				Patient pat = patients.get(patIdx);
+				insertMoveActions(actions, amb, amb.getNode(), pat.getNode());
+				actions.add(new ActionPick(amb, pat.getNode(), pat));
 
-//			for (int i = 0; i < routes.length; i++) {
-//				int id = ambulances.get(i).getId();
-//
-//			}
+				for (int j = 0; j < routes[i].size() - 1; j++) {
+					int nxtPatIdx = routes[i].get(j + 1);
+
+					// Drop current patient in an optimal hospital
+					Hospital hos = hospitals.get(optHospitals[patIdx][nxtPatIdx]);
+					insertMoveActions(actions, amb, pat.getNode(), hos.getNode());
+					actions.add(new ActionDrop(amb, hos.getNode(), pat));
+
+					// Pick next patient
+					patIdx = nxtPatIdx;
+					pat = patients.get(patIdx);
+					insertMoveActions(actions, amb, hos.getNode(), pat.getNode());
+					actions.add(new ActionPick(amb, pat.getNode(), pat));
+				}
+
+				// Drop last patient
+				Hospital hos = hospitals.get(singleOptHospitals[patIdx]);
+				insertMoveActions(actions, amb, pat.getNode(), hos.getNode());
+				actions.add(new ActionDrop(amb, hos.getNode(), pat));
+			}
 
 			return actions;
+		}
+
+		private void insertMoveActions(List<Action> actions, Ambulance amb, int from, int to) {
+			List<Integer> path = map.shortestPath(from, to);
+
+			for (int i = 0; i < path.size() - 1; i++) {
+				int s = path.get(i);
+				int f = path.get(i + 1);
+				actions.add(new ActionMove(amb, s, f));
+			}
 		}
 
 		@Override

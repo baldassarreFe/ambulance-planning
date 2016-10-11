@@ -3,13 +3,13 @@ package model;
 public class ActionPick extends Action {
 	
 	private Ambulance ambulance;
-	private Node at;
-	private Hospital h;
+	private int at;
+	private Patient p;
 
-	public ActionPick(Ambulance a, Node at, Hospital h) {
+	public ActionPick(Ambulance a, int at, Patient p) {
 		this.ambulance = a;
 		this.at = at;
-		this.h = h;
+		this.p = p;
 	}
 
 	@Override

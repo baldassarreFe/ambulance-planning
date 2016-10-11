@@ -3,10 +3,10 @@ package model;
 public class ActionMove extends Action {
 	
 	private Ambulance ambulance;
-	private Node from;
-	private Node to;
+	private int from;
+	private int to;
 
-	public ActionMove(Ambulance a, Node from, Node to) {
+	public ActionMove(Ambulance a, int from, int to) {
 		this.ambulance = a;
 		this.from = from;
 		this.to = to;
