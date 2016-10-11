@@ -1,14 +1,52 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class CityMap {
+	public static void main(String[] args) {
+		Random r = new Random();
+		List<Node> nodes = new ArrayList<>();
+		Map<NodePair, Double> adjMatrix = new HashMap<>();
+		for (int i = 0; i < 8; i++) {
+			nodes.add(new Node(10 * r.nextDouble(), 10 * r.nextDouble(), r.nextInt(365)));
+		}
+		for (Node from : nodes) {
+			for (Node to : nodes) {
+				double distance;
+				if (from.equals(to)) {
+					distance = 0;
+				} else if (r.nextBoolean()) {
+					distance = -1;
+				} else {
+					distance = noisedDistance(r, from, to);
+				}
+				adjMatrix.put(new NodePair(from, to), distance);
+			}
+		}
+
+		CityMap map = new CityMap(adjMatrix, nodes);
+
+		for (Node from : nodes) {
+			for (Node to : nodes) {
+				System.out.println(map.shortestPath(from, to));
+			}
+		}
+	}
+
+	private static double noisedDistance(Random r, Node from, Node to) {
+		double deltaX = from.getX() - to.getX();
+		double deltaY = from.getY() - to.getY();
+		return Math.sqrt(deltaX * deltaX + deltaY * deltaY) * (1 + 0.2 * r.nextDouble());
+	}
+
 	private final List<Path> shortestPaths;
 	private final List<Node> nodes;
 
@@ -28,6 +66,10 @@ public class CityMap {
 
 	public int patientCount() {
 		return nodes.stream().mapToInt(n -> n.getPatients().size()).sum();
+	}
+
+	public int nodesCount() {
+		return nodes.size();
 	}
 
 	public void spawn(Patient patient, int nodeId) {
@@ -51,8 +93,13 @@ public class CityMap {
 	}
 
 	public Path shortestPath(int from, int to) {
+		return shortestPaths.stream().filter(p -> p.getFrom().getId() == from && p.getTo().getId() == to).findFirst()
+				.get();
+	}
+
+	public Path shortestPath(Node from, Node to) {
 		return shortestPaths.stream()
-				.filter(p -> p.getFrom().getId() == from && p.getTo().getId() == to).findFirst().get();
+				.filter(p -> p.getFrom().getId() == from.getId() && p.getTo().getId() == to.getId()).findFirst().get();
 	}
 
 	public List<Path> shortestPathsFrom(Node from) {
@@ -160,13 +207,18 @@ public class CityMap {
 		return ind;
 	}
 
-	public class NodePair {
+	public static class NodePair {
 		public final int from;
 		public final int to;
 
 		public NodePair(Node from, Node to) {
 			this.from = from.getId();
 			this.to = to.getId();
+		}
+
+		@Override
+		public String toString() {
+			return "[ N_" + from + " : N_" + to + " ]";
 		}
 
 		@Override

@@ -37,7 +37,7 @@ public class Ambulance implements NodeContent {
 	// package-private methods
 	
 	Ambulance() {
-		this(++ID, null, true);
+		this(ID++, null, true);
 	}
 	
 	Ambulance(int id, Patient patient, boolean clean) {

@@ -3,6 +3,7 @@ package model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Path {
 	private final double distance;
@@ -40,4 +41,9 @@ public class Path {
 		this.distance = distance;
 	}
 
+	@Override
+	public String toString() {
+		return path.stream().map(n -> "N_" + n.getId()).collect(Collectors.joining(", ", "[", "]")) + "(" + distance
+				+ ")";
+	}
 }

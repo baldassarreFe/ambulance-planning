@@ -21,7 +21,7 @@ private static int ID = 0;
 	// package-private methods
 	
 	Patient(int severity) {
-		this(++ID, severity);
+		this(ID++, severity);
 	}
 	
 	Patient(int id, int severity) {
