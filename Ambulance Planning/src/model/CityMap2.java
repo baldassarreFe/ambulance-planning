@@ -124,7 +124,7 @@ public class CityMap2 {
 	}
 
 	public double shortestDistance(int from, int to) {
-		return shortestDistance(from, to);
+		return shortestDistances[from][to];
 	}
 
 	public ArrayList<Integer> shortestPath(int from, int to) {

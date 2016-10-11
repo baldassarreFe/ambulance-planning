@@ -38,6 +38,7 @@ public class PSOPlanner extends Planner {
 	public List<Action> solve(CityMap map) {
 		this.map = map;
 
+		// todo: (!!!) this is not the correct way to get lists of all ambulances/patients/hospitals
 		ambulances = map.getAmbulancesLocation();
 		patients = map.getPatientsLocation();
 		hospitals = map.getHospitalsLocation();
@@ -371,6 +372,8 @@ public class PSOPlanner extends Planner {
 		 * @return plan representation used by model
 		 */
 		private List<Action> toMainRepresentation() {
+
+			System.out.println(toString()); // todo: remove debug
 
 			List<Action> actions = new ArrayList<>();
 
