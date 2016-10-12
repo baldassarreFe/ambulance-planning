@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import model.Action;
+import model.ActionDrop;
 import model.Ambulance;
 import model.CityMap;
 import model.CityMap.Print;
@@ -36,9 +37,10 @@ public class Main {
 		System.out.println(map.represent(Print.DEMANDS));
 
 		Map<Ambulance, List<Action>> plan = null;
+		boolean replanningNeeded = true;
 		do {
 			// if we don't have a plan make one
-			if (plan == null) {
+			if (replanningNeeded) {
 				plan = p.solve(map);
 			}
 
@@ -56,6 +58,8 @@ public class Main {
 					Action a = plan.get(amb).remove(0);
 					System.out.println("Executing: " + a);
 					map.performAction(a);
+					if (a instanceof ActionDrop)
+						replanningNeeded = true;
 				}
 			}
 
@@ -67,9 +71,9 @@ public class Main {
 				Patient patient = new Patient(2, 3);
 				map.spawn(patient);
 				// invalidate plan
-				plan = null;
+				replanningNeeded = true;
 			}
-		} while (plan == null || !plan.values().stream().allMatch(List::isEmpty));
+		} while (replanningNeeded || !plan.values().stream().allMatch(List::isEmpty));
 
 	}
 }
