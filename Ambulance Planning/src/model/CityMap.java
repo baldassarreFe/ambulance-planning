@@ -150,6 +150,10 @@ public class CityMap {
 				.collect(Collectors.toList());
 	}
 
+	public List<NodeContent> getContentAt(int node) {
+		return contents.get(node);
+	}
+
 	public double shortestDistance(int from, int to) {
 		return shortestDistances[from][to];
 	}
@@ -179,6 +183,10 @@ public class CityMap {
 	public Set<Integer> nodesThatReach(int to) {
 		return IntStream.range(0, nodeCount).filter(from -> adjMatrix[from][to] > 0).boxed()
 				.collect(Collectors.toSet());
+	}
+
+	public boolean areAdjacent(int from, int to) {
+		return adjMatrix[from][to] > 0;
 	}
 
 	private void computePaths() {

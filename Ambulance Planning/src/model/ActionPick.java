@@ -14,11 +14,15 @@ public class ActionPick extends Action {
 
 	@Override
 	protected void checkPreconditions(CityMap cityMap) {
-		// TODO
+		assert p.isWaiting();
+		assert ambulance.isFree();
+		assert p.getNode() == at;
+		assert ambulance.getNode() == at;
 	}
 
 	@Override
 	protected void applyEffects(CityMap cityMap) {
-		// TODO
+		ambulance.load(p);
+		p.load();
 	}
 }

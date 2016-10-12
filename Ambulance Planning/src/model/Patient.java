@@ -5,6 +5,9 @@ private static int ID = 0;
 	
 	private final int id;
 	private final int severity;
+
+	private boolean waiting = true;
+	private boolean inHospital = false;
 	
 	public int getId() {
 		return id;
@@ -28,5 +31,21 @@ private static int ID = 0;
 		super(node);
 		this.id = id;
 		this.severity = severity;
+	}
+
+	public boolean isWaiting() {
+		return waiting;
+	}
+
+	public void load() {
+		waiting = false;
+	}
+
+	public boolean isInHospital() {
+		return inHospital;
+	}
+
+	public void unload() {
+		inHospital = true;
 	}
 }
