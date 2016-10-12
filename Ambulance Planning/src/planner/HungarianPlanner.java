@@ -116,4 +116,8 @@ public class HungarianPlanner extends Planner {
 		return bigplan;
 	}
 
+	@Override
+	public boolean replanAfterDropAction() {
+		return true;
+	}
 }

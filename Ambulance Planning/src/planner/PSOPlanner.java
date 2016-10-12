@@ -74,6 +74,11 @@ public class PSOPlanner extends Planner {
 		return plan;
 	}
 
+	@Override
+	public boolean replanAfterDropAction() {
+		return false;
+	}
+
 	/**
 	 * Fill the <code>ambLocations</code> list.
 	 */

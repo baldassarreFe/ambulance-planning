@@ -6,13 +6,8 @@ import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Map;
 
-import model.Action;
-import model.ActionDrop;
-import model.Ambulance;
-import model.CityMap;
+import model.*;
 import model.CityMap.Print;
-import model.CityParser;
-import model.Patient;
 import planner.HungarianPlanner;
 import planner.PSOPlanner;
 import planner.Planner;
@@ -27,7 +22,11 @@ public class Main {
 
 		// initial set up
 		Planner p = new HungarianPlanner();
+//		Planner p = new PSOPlanner();
 		CityMap map = CityParser.parse(cityFileName);
+
+		PatientProvider pProvider = new RandomPatientProvider(0.0, map);
+//		PatientProvider pProvider = new ManualPatientProvider(in);
 
 		System.out.println(map.represent(Print.ADJ_MATRIX));
 		System.out.println(map.represent(Print.SHORTEST_DISTANCES_MATRIX));
@@ -63,19 +62,16 @@ public class Main {
 					Action a = plan.get(amb).remove(0);
 					System.out.println("Executing: " + a);
 					map.performAction(a);
-					if (a instanceof ActionDrop)
+					if (a instanceof ActionDrop && p.replanAfterDropAction())
 						replanningNeeded = true;
 				}
 			}
 
 			// prompt user to spawn a patient
-			System.out.println("Want to add a patient?");
-			String answer = in.readLine().trim();
-			if (!answer.isEmpty()) {
-				// parse user input
-				Patient patient = new Patient(2, 3);
+			if (pProvider.hasNewPatient()) {
+				Patient patient = pProvider.getNewPatient();
+				System.out.println("New patient: " + patient);
 				map.spawn(patient);
-				// invalidate plan
 				replanningNeeded = true;
 			}
 		} while (replanningNeeded || !plan.values().stream().allMatch(List::isEmpty));

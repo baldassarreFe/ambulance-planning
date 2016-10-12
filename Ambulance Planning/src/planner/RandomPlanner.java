@@ -27,4 +27,8 @@ public class RandomPlanner extends Planner {
 		return result ;
 	}
 
+	@Override
+	public boolean replanAfterDropAction() {
+		return true;
+	}
 }

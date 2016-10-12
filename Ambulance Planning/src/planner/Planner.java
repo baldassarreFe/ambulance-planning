@@ -14,4 +14,9 @@ public abstract class Planner {
 		// TODO find the first action for every ambulance, remove them and return them
 		return null;
 	}
+
+	/**
+	 * Tells if a plan should be evaluated again after a drop action.
+	 */
+	public abstract boolean replanAfterDropAction();
 }
