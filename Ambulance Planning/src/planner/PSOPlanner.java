@@ -41,7 +41,7 @@ public class PSOPlanner extends Planner {
 	private double[] singleOptHospitalsDist;
 
 	@Override
-	public List<Action> solve(CityMap map) {
+	public Map<Ambulance, List<Action>> solve(CityMap map) {
 		this.map = map;
 
 		ambulances = map.getAmbulances();
@@ -435,14 +435,15 @@ public class PSOPlanner extends Planner {
 		 *
 		 * @return plan representation used by model
 		 */
-		private List<Action> toMainRepresentation() {
+		private Map<Ambulance, List<Action>> toMainRepresentation() {
 
 			System.out.println(toString()); // todo: remove debug
 
-			List<Action> actions = new ArrayList<>();
+			Map<Ambulance, List<Action>> bigplan = new HashMap<>();
 
 			for (int i = 0; i < ambCnt; i++) {
 				Ambulance amb = ambulances.get(i);
+				List<Action> actions = new ArrayList<>();
 				/*
 				 * Do not forget to add route to the closest hospital if
 				 * already have a patient.
@@ -481,9 +482,12 @@ public class PSOPlanner extends Planner {
 				Hospital hos = hospitals.get(singleOptHospitals[patIdx]);
 				insertMoveActions(actions, amb, pat.getNode(), hos.getNode());
 				actions.add(new ActionDrop(amb, hos.getNode(), pat));
+
+				// Add to the whole plan
+				bigplan.put(amb, actions);
 			}
 
-			return actions;
+			return bigplan;
 		}
 
 		private void insertMoveActions(List<Action> actions, Ambulance amb, int from, int to) {
@@ -560,7 +564,7 @@ public class PSOPlanner extends Planner {
 		CityMap map = new CityMap(adjMatrix, null, contents, demands);
 
 		PSOPlanner planner = new PSOPlanner();
-		List<Action> plan = planner.solve(map);
+		Map<Ambulance, List<Action>> plan = planner.solve(map);
 	}
 
 }
