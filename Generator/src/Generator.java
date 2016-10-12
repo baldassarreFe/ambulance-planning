@@ -131,10 +131,12 @@ public class Generator {
 		
 		String s = "";
 		int nodes = (int) map[0];
-		// int roads = (int) map[1];	FIXME: with the erdos alg it is not needed
+		int roads = (int) map[1];	//FIXME: with the erdos alg it is not needed
 		double noise = map[2];
 		int demand = (int) map[3];
 
+		ArrayList<Pair<Integer, Integer>> posRoads = generteRoads(nodes);
+		Collections.shuffle(posRoads);
 		ArrayList<Integer> createNodes = new ArrayList<>();		
 		createNodes.add(0);
 		createNodes.add(1);
@@ -153,6 +155,7 @@ public class Generator {
 		
 		
 		s = s.concat(roadString(0,1, posCoord, noise));
+		posRoads.remove(new Pair<Integer, Integer>(0,1));
 		
 		
 		/* Erdos algorithm */
@@ -163,8 +166,20 @@ public class Generator {
 			
 			// Choose random connection
 			int randomNode = r.nextInt(i);
-			s = s.concat(roadString(randomNode,i, posCoord, noise));			
-		}		
+			s = s.concat(roadString(randomNode,i, posCoord, noise));	
+			posRoads.remove(new Pair<Integer, Integer>(0,1));
+		}	
+		
+		/* Add more roads */
+		for(int erdosRoads = nodes - 1; erdosRoads < roads; erdosRoads++) {
+			
+			// Choose random (remaining) road
+			int randomRoad = r.nextInt(posRoads.size());
+			Pair<Integer, Integer> road = posRoads.get(randomRoad);
+			posRoads.remove(road);
+			
+			s = s.concat(roadString(road.x,road.y, posCoord, noise));			
+		}
 		
 		return s;
 	}
@@ -329,6 +344,26 @@ public class Generator {
 		s.append("))"); // Close goal and define
 		
 		return s.toString();
+	}
+	
+	/**
+	 * Generates all possible roads
+	 * 
+	 * @param nodes Number of nodes
+	 * @return Array with all possible roads
+	 */
+	private static ArrayList<Pair<Integer, Integer>> generteRoads(int nodes){
+		
+		ArrayList<Pair<Integer, Integer>> list = new ArrayList<>();
+		
+		for(int i = 0; i < nodes; i++) {
+			for(int j = i+1; j < nodes; j++) {
+				Pair<Integer, Integer> p = new Pair<Integer, Integer>(i, j);
+				list.add(p);
+			}
+		}
+		
+		return list;		
 	}
 	
 	/**
