@@ -1,11 +1,5 @@
 package model;
 
-<<<<<<< HEAD
-=======
-import javax.xml.soap.Node;
-
-import java.io.BufferedOutputStream;
->>>>>>> 5998d6d7c2b6138ef5714a74baec7c0be455df99
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

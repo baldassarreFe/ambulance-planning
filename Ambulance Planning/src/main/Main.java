@@ -18,7 +18,7 @@ public class Main {
 	public static void main(String[] args)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IOException {
 		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-		
+
 		// args parsing
 		String cityFileName = args[0];
 		String plannerName = args[1];
@@ -26,7 +26,7 @@ public class Main {
 		// initial set up
 		Planner p = (Planner) Class.forName(plannerName).newInstance();
 		CityMap map = CityParser.parse(cityFileName);
-		
+
 		System.out.println(map.represent(Print.ADJ_MATRIX));
 		System.out.println(map.represent(Print.SHORTEST_DISTANCES_MATRIX));
 		System.out.println(map.represent(Print.SHORTEST_PATHS));
@@ -43,20 +43,22 @@ public class Main {
 			}
 
 			// print full plan
-			for (Ambulance amb : map.getAmbulances()){
+			for (Ambulance amb : map.getAmbulances()) {
 				System.out.println("Actions for " + amb);
 				for (Action a : plan.get(amb)) {
 					System.out.println(a);
 				}
 				System.out.println();
 			}
-			
-			for (Ambulance amb : map.getAmbulances()){
-				Action a = plan.get(amb).remove(0);
-				System.out.println("Executing: " + a);
-				map.performAction(a);
+
+			for (Ambulance amb : map.getAmbulances()) {
+				if (!plan.get(amb).isEmpty()) {
+					Action a = plan.get(amb).remove(0);
+					System.out.println("Executing: " + a);
+					map.performAction(a);
+				}
 			}
-			
+
 			// prompt user to spawn a patient
 			System.out.println("Want to add a patient?");
 			String answer = in.readLine().trim();
@@ -67,7 +69,7 @@ public class Main {
 				// invalidate plan
 				plan = null;
 			}
-		} while (plan == null || !plan.isEmpty());
+		} while (plan == null || !plan.values().stream().allMatch(List::isEmpty));
 
 	}
 }

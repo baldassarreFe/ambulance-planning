@@ -1,7 +1,7 @@
 package model;
 
 public class ActionPick extends Action {
-	
+
 	private Ambulance ambulance;
 	private int at;
 	private Patient p;
@@ -14,18 +14,17 @@ public class ActionPick extends Action {
 
 	@Override
 	protected void checkPreconditions(CityMap cityMap) {
-		assert p.isWaiting();
-		assert ambulance.isFree();
-		assert p.getNode() == at;
-		assert ambulance.getNode() == at;
+		if (!p.isWaiting() || !ambulance.isFree() || p.getNode() != at || ambulance.getNode() != at)
+			throw new IllegalStateException();
 	}
 
 	@Override
 	protected void applyEffects(CityMap cityMap) {
 		ambulance.load(p);
+		cityMap.getContentAt(at).remove(p);
 		p.load();
 	}
-	
+
 	@Override
 	public String toString() {
 		return String.format("pick(A%d P%d @ N%d)", ambulance.getId(), p.getId(), at);

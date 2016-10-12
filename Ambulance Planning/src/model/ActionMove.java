@@ -1,7 +1,9 @@
 package model;
 
+import java.util.Iterator;
+
 public class ActionMove extends Action {
-	
+
 	private Ambulance ambulance;
 	private int from;
 	private int to;
@@ -14,15 +16,17 @@ public class ActionMove extends Action {
 
 	@Override
 	protected void checkPreconditions(CityMap cityMap) {
-		assert ambulance.getNode() == from;
-		assert cityMap.areAdjacent(from, to);
+		if (ambulance.getNode() != from || !cityMap.areAdjacent(from, to))
+			throw new IllegalStateException();
 	}
 
 	@Override
 	protected void applyEffects(CityMap cityMap) {
+		cityMap.getContentAt(from).remove(ambulance);
 		ambulance.setNode(to);
+		cityMap.getContentAt(to).add(ambulance);
 	}
-	
+
 	@Override
 	public String toString() {
 		return String.format("move(A%d %d -> %d)", ambulance.getId(), from, to);

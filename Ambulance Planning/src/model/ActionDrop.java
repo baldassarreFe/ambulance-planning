@@ -1,7 +1,7 @@
 package model;
 
 public class ActionDrop extends Action {
-	
+
 	private Ambulance ambulance;
 	private int at;
 	private Patient p;
@@ -14,18 +14,16 @@ public class ActionDrop extends Action {
 
 	@Override
 	protected void checkPreconditions(CityMap cityMap) {
-		assert ambulance.getNode() == at;  // ambulance at location
-		assert cityMap.getContentAt(at).stream().anyMatch(c -> c instanceof Hospital);  // hospital at location
-		assert ambulance.getPatient() == p;  // patient is the same
+		if (ambulance.getNode() != at || !cityMap.getContentAt(at).stream().anyMatch(c -> c instanceof Hospital) || ambulance.getPatient() != p)
+			throw new IllegalStateException();
 	}
 
 	@Override
 	protected void applyEffects(CityMap cityMap) {
 		ambulance.unload();
 		p.unload();
-		p.setNode(at);
 	}
-	
+
 	@Override
 	public String toString() {
 		return String.format("drop(A%d P%d @ N%d)", ambulance.getId(), p.getId(), at);

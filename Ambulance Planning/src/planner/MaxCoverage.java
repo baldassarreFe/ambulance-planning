@@ -357,7 +357,7 @@ public class MaxCoverage {
 			numerator += weightDist[i][0];
 			denominator += weightDist[i][0] * (1 / weightDist[i][1]);
 		}
-		return demNode / (numerator / denominator);
+		return 1.0 / (numerator / denominator);
 	}
 
 	/*
