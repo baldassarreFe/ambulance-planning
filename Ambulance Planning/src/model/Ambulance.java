@@ -31,7 +31,7 @@ public class Ambulance extends NodeContent {
 	}
 	
 	public String toString() {
-		return String.format("H_%d [%s] %s", id, isFree()?"":patient.toString(), isClean()?"":"***");
+		return String.format("A_%d [%s] %s", id, isFree()?"":patient.toString(), isClean()?"":"***");
 	}
 
 	// package-private methods
