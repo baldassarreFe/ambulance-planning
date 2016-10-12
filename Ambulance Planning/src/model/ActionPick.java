@@ -21,4 +21,9 @@ public class ActionPick extends Action {
 	protected void applyEffects(CityMap cityMap) {
 		// TODO
 	}
+	
+	@Override
+	public String toString() {
+		return String.format("pick(A%d P%d @ N%d)", ambulance.getId(), p.getId(), at);
+	}
 }

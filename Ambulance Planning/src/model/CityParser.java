@@ -1,21 +1,17 @@
 package model;
 
-import javax.xml.soap.Node;
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 
-public class CityParser extends PrintWriter {
+public class CityParser {
 	
 	/* Constants */	
 	private static final int L_PARAM = 11;
@@ -46,12 +42,7 @@ public class CityParser extends PrintWriter {
 	
 	/* Kattis functions IO */		
     public CityParser(InputStream i) {
-        super(new BufferedOutputStream(System.out));
         r = new BufferedReader(new InputStreamReader(i));
-    }
-    
-    public CityParser(OutputStream o) {
-        super(new BufferedOutputStream(o));
     }
 
     public boolean hasMoreTokens() {
@@ -77,8 +68,6 @@ public class CityParser extends PrintWriter {
     public String getWord() {
         return nextToken();
     }
-
-
 
     private BufferedReader r;
     private String line;
@@ -170,11 +159,7 @@ public class CityParser extends PrintWriter {
 				cp.nextLine();
 			} while (!cp.line.contains("(:goal"));
 			
-			c = new CityMap(adjMatrix, coordinates, Arrays.asList(contents), demands);
-			
-			
-			cp.close();		
-			
+			c = new CityMap(adjMatrix, coordinates, Arrays.asList(contents), demands);			
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}

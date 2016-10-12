@@ -27,17 +27,17 @@ public class CityMap {
 			demands[node] = r.nextInt(365);
 			contents.add(new ArrayList<>());
 		}
-		
+
 		for (int i = 0; i < numAmbs; i++) {
 			int node = r.nextInt(numNodes);
 			contents.get(node).add(new Ambulance(node));
 		}
-		
+
 		for (int i = 0; i < numPat; i++) {
 			int node = r.nextInt(numNodes);
-			contents.get(node).add(new Patient(node,r.nextInt(3)));
+			contents.get(node).add(new Patient(node, r.nextInt(3)));
 		}
-		
+
 		for (int i = 0; i < numHos; i++) {
 			int node = r.nextInt(numNodes);
 			contents.get(node).add(new Hospital(node, 5));
@@ -67,7 +67,7 @@ public class CityMap {
 		System.out.println(map.represent(Print.HOSPITAL_LOCATIONS));
 		System.out.println(map.represent(Print.PATIENT_LOCATIONS));
 		System.out.println(map.represent(Print.DEMANDS));
-		
+
 		return map;
 	}
 
@@ -84,8 +84,7 @@ public class CityMap {
 	private final int ambulanceCount;
 	private final int hospitalCount;
 
-	public CityMap(double[][] adjMatrix, double[][] coordinates, List<List<NodeContent>> contents,
-			double[] demands) {
+	public CityMap(double[][] adjMatrix, double[][] coordinates, List<List<NodeContent>> contents, double[] demands) {
 		nodeCount = adjMatrix.length;
 		ambulanceCount = (int) contents.stream().flatMap(list -> list.stream()).filter(nc -> nc instanceof Ambulance)
 				.count();
@@ -100,7 +99,7 @@ public class CityMap {
 
 		computePaths();
 	}
-	
+
 	public double[][] getShortestDistances() {
 		return shortestDistances;
 	}
@@ -166,10 +165,8 @@ public class CityMap {
 		return IntStream.range(0, nodeCount).mapToObj(from -> shortestsPaths[from][to]).collect(Collectors.toList());
 	}
 
-	public void performActions(List<Action> actions) {
-		for (Action action : actions) {
-			// action.performAction(this);
-		}
+	public void performAction(Action action) {
+		action.performAction(this);
 	}
 
 	public Set<Integer> adjacentNodes(int from) {
@@ -220,13 +217,13 @@ public class CityMap {
 			// generate all paths backtracking on previousNode
 			for (int endNode = 0; endNode < nodeCount; endNode++) {
 				ArrayList<Integer> path = new ArrayList<Integer>();
-				if (Double.isFinite(shortestDistances[startNode][endNode])) {					
-				int intermediateNode = endNode;
-				while (intermediateNode >= 0 && previousNode[intermediateNode] >= 0) {
+				if (Double.isFinite(shortestDistances[startNode][endNode])) {
+					int intermediateNode = endNode;
+					while (intermediateNode >= 0 && previousNode[intermediateNode] >= 0) {
+						path.add(0, intermediateNode);
+						intermediateNode = previousNode[intermediateNode];
+					}
 					path.add(0, intermediateNode);
-					intermediateNode = previousNode[intermediateNode];
-				}
-				path.add(0, intermediateNode);
 				}
 				shortestsPaths[startNode][endNode] = path;
 			}
@@ -285,6 +282,15 @@ public class CityMap {
 	}
 
 	public int closestHospital(int from) {
-		return IntStream.range(0, nodeCount).filter(n->contents.get(n).stream().anyMatch(c->c instanceof Hospital)).mapToObj(n->n).min((n1,n2)->(int) (shortestDistances[from][n2]-shortestDistances[from][n1])).get();
+		double min = Double.POSITIVE_INFINITY;
+		int result = 0;
+		for (int hosNode : getHospitals().stream().mapToInt(h->h.getNode()).toArray()){
+			double dist = shortestDistance(from, hosNode);
+			if (dist<min) {
+				result = hosNode;
+				min = dist;
+			}
+		}		
+		return result;
 	}
 }

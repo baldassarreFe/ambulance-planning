@@ -21,4 +21,9 @@ public class ActionMove extends Action {
 	protected void applyEffects(CityMap cityMap) {
 		// TODO
 	}
+	
+	@Override
+	public String toString() {
+		return String.format("move(A%d %d -> %d)", ambulance.getId(), from, to);
+	}
 }

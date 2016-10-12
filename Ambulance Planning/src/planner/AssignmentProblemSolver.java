@@ -69,6 +69,8 @@ public class AssignmentProblemSolver {
 
 		int[] ans = new int[n];
 		for (int j = 1; j <= m; j++) {
+			if(p[j]==0)
+				continue;
 			ans[p[j] - 1] = j - 1;
 		}
 
@@ -92,11 +94,19 @@ public class AssignmentProblemSolver {
 				{8, 1, 4, 4, 4},
 				{1, 6, 4, 9, 4}
 		};
+//		SOLUTION a
+//		{ ,  , 5,  ,  },
+//		{ ,  ,  ,  , 3},
+//		{ ,  ,  , 4,  },
+//		{ , 1,  ,  ,  },
+//		{1,  ,  ,  ,  }
+		
 //		int[][] a = {
 //				{10, 1, 10},
 //				{2, 10, 10},
 //				{10, 10, 3}
 //		};
+		int[][] b = {{11,13,31},{11,21,32}};
 		System.out.println(Arrays.toString(solve(a)));
 	}
 }

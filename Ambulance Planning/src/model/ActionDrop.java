@@ -21,4 +21,9 @@ public class ActionDrop extends Action {
 	protected void applyEffects(CityMap cityMap) {
 		// TODO
 	}
+	
+	@Override
+	public String toString() {
+		return String.format("drop(A%d P%d @ N%d)", ambulance.getId(), p.getId(), at);
+	}
 }

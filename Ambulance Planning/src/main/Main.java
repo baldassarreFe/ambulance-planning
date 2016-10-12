@@ -4,9 +4,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
+import java.util.Map;
 
 import model.Action;
+import model.Ambulance;
 import model.CityMap;
+import model.CityMap.Print;
 import model.CityParser;
 import model.Patient;
 import planner.Planner;
@@ -23,8 +26,16 @@ public class Main {
 		// initial set up
 		Planner p = (Planner) Class.forName(plannerName).newInstance();
 		CityMap map = CityParser.parse(cityFileName);
+		
+		System.out.println(map.represent(Print.ADJ_MATRIX));
+		System.out.println(map.represent(Print.SHORTEST_DISTANCES_MATRIX));
+		System.out.println(map.represent(Print.SHORTEST_PATHS));
+		System.out.println(map.represent(Print.AMBULANCES_LOCATIONS));
+		System.out.println(map.represent(Print.HOSPITAL_LOCATIONS));
+		System.out.println(map.represent(Print.PATIENT_LOCATIONS));
+		System.out.println(map.represent(Print.DEMANDS));
 
-		List<Action> plan = null;
+		Map<Ambulance, List<Action>> plan = null;
 		do {
 			// if we don't have a plan make one
 			if (plan == null) {
@@ -32,19 +43,19 @@ public class Main {
 			}
 
 			// print full plan
-			for (Action action : plan) {
-				System.out.println(action);
+			for (Ambulance amb : map.getAmbulances()){
+				System.out.println("Actions for " + amb);
+				for (Action a : plan.get(amb)) {
+					System.out.println(a);
+				}
+				System.out.println();
 			}
-
-			// remove from the plan the actions that can be done concurrently in
-			// the next step
-			List<Action> nextStepActions = Planner.pickConcurrentActions(plan);
 			
-			// print actions planned for next step
-			for (Action action : nextStepActions) {
-				System.out.println(action);
+			for (Ambulance amb : map.getAmbulances()){
+				Action a = plan.get(amb).remove(0);
+				System.out.println("Executing: " + a);
+				map.performAction(a);
 			}
-			map.performActions(nextStepActions);
 			
 			// prompt user to spawn a patient
 			System.out.println("Want to add a patient?");
