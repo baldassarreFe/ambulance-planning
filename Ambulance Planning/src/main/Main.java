@@ -7,7 +7,6 @@ import java.util.List;
 
 import model.Action;
 import model.CityMap;
-import model.CityMap2;
 import model.CityParser;
 import model.Patient;
 import planner.Planner;
@@ -23,7 +22,7 @@ public class Main {
 
 		// initial set up
 		Planner p = (Planner) Class.forName(plannerName).newInstance();
-		CityMap2 map = CityParser.parse(cityFileName);
+		CityMap map = CityParser.parse(cityFileName);
 
 		List<Action> plan = null;
 		do {

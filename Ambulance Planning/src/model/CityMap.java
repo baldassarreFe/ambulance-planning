@@ -19,7 +19,7 @@ public class CityMap {
 		double[][] adjMatrix = new double[numNodes][numNodes];
 		double[][] coordinates = new double[numNodes][NUM_COORD];
 		double[] demands = new double[numNodes];
-		ArrayList<ArrayList<NodeContent>> contents = new ArrayList<>();
+		ArrayList<List<NodeContent>> contents = new ArrayList<>();
 
 		for (int node = 0; node < numNodes; node++) {
 			coordinates[node][X] = 10 * r.nextDouble();
@@ -77,14 +77,14 @@ public class CityMap {
 
 	private final double[][] adjMatrix;
 	private final double[] demands;
-	private final List<ArrayList<NodeContent>> contents;
+	private final List<List<NodeContent>> contents;
 	private final double[][] shortestDistances;
 	private final ArrayList<?>[][] shortestsPaths; // ? will be integers
 	private final int nodeCount;
 	private final int ambulanceCount;
 	private final int hospitalCount;
 
-	public CityMap(double[][] adjMatrix, double[][] coordinates, ArrayList<ArrayList<NodeContent>> contents,
+	public CityMap(double[][] adjMatrix, double[][] coordinates, List<List<NodeContent>> contents,
 			double[] demands) {
 		nodeCount = adjMatrix.length;
 		ambulanceCount = (int) contents.stream().flatMap(list -> list.stream()).filter(nc -> nc instanceof Ambulance)

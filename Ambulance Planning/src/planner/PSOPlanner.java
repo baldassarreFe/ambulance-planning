@@ -5,9 +5,7 @@ import model.*;
 import utils.Pair;
 import utils.Utils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * Planner that uses PSO as a tool to find better solution.
@@ -191,7 +189,7 @@ public class PSOPlanner extends Planner {
 		 * Special case of empty routes.
 		 */
 		if (ambPlan.size() == 0) {
-			return new Pair<>(0, shortestDistance(amb, pat));
+			return new Pair<>(0, shortestDistance(amb, pat) + singleOptHospitalsDist[patIdx]);
 		}
 		/*
 		 * Find bounds where patient can be placed considering his priority.
@@ -306,7 +304,8 @@ public class PSOPlanner extends Planner {
 		double bestCostUpd = 0;
 		int bestL = -1, bestR = -1;
 		for (int l = 0; l < route.size(); l++) {
-			for (int r = l + 1; r < route.size(); r++) {
+			int severity = patients.get(route.get(l)).getSeverity();
+			for (int r = l + 1; r < route.size() && patients.get(route.get(r)).getSeverity() == severity; r++) {
 				// try revert [l; r] patients
 				double curCostUpd = 0;
 				if (l == 0) {
@@ -454,6 +453,10 @@ public class PSOPlanner extends Planner {
 			for (int i = 0; i < routes.length; i++) {
 				int id = ambulances.get(i).getId();
 				str.append("A").append(id).append(" ->");
+				if (routes[i].size() == 0) {
+					str.append("\n");
+					continue;
+				}
 				for (int j = 0; j < routes[i].size() - 1; j++) {
 					int cur = routes[i].get(j);
 					int nxt = routes[i].get(j + 1);
@@ -470,6 +473,34 @@ public class PSOPlanner extends Planner {
 
 			return str.toString();
 		}
+	}
+
+	public static void main(String[] args) {
+
+		double[][] adjMatrix = {
+				{0,2,0,0,0,0,0},
+				{2,0,2,2,9,0,0},
+				{0,2,0,3,0,0,0},
+				{0,2,3,0,0,0,0},
+				{0,9,0,0,0,7,1},
+				{0,0,0,0,7,0,0},
+				{0,0,0,0,1,0,0}
+		};
+		double[] demands = new double[7];
+		List<List<NodeContent>> contents = new ArrayList<>();
+		// Constructors are package-private, for testing purpose can temporary set them to public
+//		/*1*/contents.add(Arrays.asList(new Ambulance(0, 1, null, true)));
+//		/*2*/contents.add(Arrays.asList(new Patient(1, 2, 2)));
+//		/*3*/contents.add(Arrays.asList(new Patient(2, 1, 3)));
+//		/*4*/contents.add(Arrays.asList(new Hospital(3, 1, 3)));
+//		/*5*/contents.add(Arrays.asList(new Ambulance(4, 2, null, true), new Patient(4, 4, 1)));
+//		/*6*/contents.add(Arrays.asList(new Patient(5, 3, 2)));
+//		/*7*/contents.add(Arrays.asList(new Hospital(6, 2, 3)));
+
+		CityMap map = new CityMap(adjMatrix, null, contents, demands);
+
+		PSOPlanner planner = new PSOPlanner();
+		List<Action> plan = planner.solve(map);
 	}
 
 }

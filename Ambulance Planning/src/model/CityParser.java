@@ -1,5 +1,6 @@
 package model;
 
+import javax.xml.soap.Node;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -10,6 +11,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.StringTokenizer;
 
 public class CityParser extends PrintWriter {
@@ -117,10 +120,10 @@ public class CityParser extends PrintWriter {
     
     
     /* Our parser */
-	public static CityMap2 parse(String cityFileName) {
+	public static CityMap parse(String cityFileName) {
 		
 		InputStream input;
-		CityMap2 c = null;		
+		CityMap c = null;
 		
 		try {
 			/* Open input file */		
@@ -147,9 +150,9 @@ public class CityParser extends PrintWriter {
 			}		
 			
 			double[][] adjMatrix = new double[l][l];
-			double[][] coordinates = new double[l][CityMap2.NUM_COORD];
+			double[][] coordinates = new double[l][CityMap.NUM_COORD];
 			double[] demands = new double[l];
-			ArrayList<?>[] contents = new ArrayList<?>[l];
+			List<NodeContent>[] contents = new ArrayList[l];
 			
 			for (int node = 0; node < l; node++) {
 				contents[node] = new ArrayList<>();
@@ -167,7 +170,7 @@ public class CityParser extends PrintWriter {
 				cp.nextLine();
 			} while (!cp.line.contains("(:goal"));
 			
-			c = new CityMap2(adjMatrix, coordinates, (ArrayList<NodeContent>[]) contents, demands);
+			c = new CityMap(adjMatrix, coordinates, Arrays.asList(contents), demands);
 			
 			
 			cp.close();		
@@ -321,8 +324,8 @@ public class CityParser extends PrintWriter {
 		int y = Integer.parseInt(p[L_Y]);
 		int d = Integer.parseInt(p[L_DEMAND]);
 		
-		coord[node][CityMap2.X] = x;
-		coord[node][CityMap2.Y] = y;
+		coord[node][CityMap.X] = x;
+		coord[node][CityMap.Y] = y;
 		demands[node] = d;
 		
 	}
