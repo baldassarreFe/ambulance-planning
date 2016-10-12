@@ -13,6 +13,8 @@ import model.CityMap;
 import model.CityMap.Print;
 import model.CityParser;
 import model.Patient;
+import planner.HungarianPlanner;
+import planner.PSOPlanner;
 import planner.Planner;
 
 public class Main {
@@ -22,10 +24,9 @@ public class Main {
 
 		// args parsing
 		String cityFileName = args[0];
-		String plannerName = args[1];
 
 		// initial set up
-		Planner p = (Planner) Class.forName(plannerName).newInstance();
+		Planner p = new HungarianPlanner();
 		CityMap map = CityParser.parse(cityFileName);
 
 		System.out.println(map.represent(Print.ADJ_MATRIX));
@@ -41,19 +42,23 @@ public class Main {
 		do {
 			// if we don't have a plan make one
 			if (replanningNeeded) {
+				System.out.println("Replanning...");
 				plan = p.solve(map);
+				replanningNeeded = false;
 			}
 
 			// print full plan
-			for (Ambulance amb : map.getAmbulances()) {
-				System.out.println("Actions for " + amb);
-				for (Action a : plan.get(amb)) {
-					System.out.println(a);
+			for (Ambulance amb : plan.keySet()) {
+				if (!plan.get(amb).isEmpty()) {
+					System.out.println("Actions for " + amb);
+					for (Action a : plan.get(amb)) {
+						System.out.println("   " + a);
+					}
+					System.out.println();
 				}
-				System.out.println();
 			}
 
-			for (Ambulance amb : map.getAmbulances()) {
+			for (Ambulance amb : plan.keySet()) {
 				if (!plan.get(amb).isEmpty()) {
 					Action a = plan.get(amb).remove(0);
 					System.out.println("Executing: " + a);

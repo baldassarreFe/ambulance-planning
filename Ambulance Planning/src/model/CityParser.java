@@ -141,6 +141,16 @@ public class CityParser {
 			}		
 			
 			double[][] adjMatrix = new double[l][l];
+			for (int i = 0; i < l; i++) {
+				for (int j = 0; j < l; j++) {
+					if (i!=j) {
+						adjMatrix[i][j]=-1.0;
+					} else {
+						adjMatrix[i][j]=0.0;
+					}
+				}
+			}
+			
 			double[][] coordinates = new double[l][CityMap.NUM_COORD];
 			double[] demands = new double[l];
 			List<NodeContent>[] contents = new ArrayList[l];

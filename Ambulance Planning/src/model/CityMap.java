@@ -113,7 +113,7 @@ public class CityMap {
 	}
 
 	public int patientCount() {
-		return (int) contents.stream().flatMap(list -> list.stream()).filter(nc -> nc instanceof Ambulance).count();
+		return (int) contents.stream().flatMap(list -> list.stream()).filter(nc -> nc instanceof Patient).count();
 	}
 
 	public int nodesCount() {
@@ -250,7 +250,7 @@ public class CityMap {
 					.collect(Collectors.joining("\t", "\t", "\n")));
 			sb.append(IntStream.range(0, nodeCount)
 					.mapToObj(from -> IntStream.range(0, nodeCount).mapToDouble(to -> matrix[from][to])
-							.mapToObj(d -> Double.isInfinite(d) || d < 0 ? "-" : String.format("%+.2f", d))
+							.mapToObj(d -> Double.isInfinite(d) || d < 0 ? "-" : String.format("%.1f", d))
 							.collect(Collectors.joining("\t", from + "\t", "")))
 					.collect(Collectors.joining("\n")));
 			break;
@@ -262,22 +262,19 @@ public class CityMap {
 							shortestsPaths[from][to].stream().map(n -> "N" + n).collect(Collectors.joining(","))))));
 			break;
 		case AMBULANCES_LOCATIONS:
-			sb.append(getAmbulances().stream().map(NodeContent::getNode).map(Object::toString)
-					.collect(Collectors.joining(", ", "Ambulances [", "]")));
+			sb.append(getAmbulances().stream().map(a -> String.format("A%d @ N%d", a.getId(), a.getNode())).collect(Collectors.joining("\n", "Ambulances:\n","\n")));
 			break;
 		case HOSPITAL_LOCATIONS:
-			sb.append(getHospitals().stream().map(NodeContent::getNode).map(Object::toString)
-					.collect(Collectors.joining(", ", "Hospitals [", "]")));
+			sb.append(getHospitals().stream().map(h -> String.format("H%d @ N%d", h.getId(), h.getNode())).collect(Collectors.joining("\n", "Hospitals:\n","\n")));
 			break;
 		case PATIENT_LOCATIONS:
-			sb.append(getPatients().stream().map(NodeContent::getNode).map(Object::toString)
-					.collect(Collectors.joining(", ", "Patients [", "]")));
+			sb.append(getPatients().stream().map(p -> String.format("P%d @ N%d", p.getId(), p.getNode())).collect(Collectors.joining("\n", "Patients:\n","\n")));
 			break;
 		case DEMANDS:
-			sb.append(IntStream.range(0, nodeCount).mapToObj(Integer::toString)
-					.collect(Collectors.joining("\t", "Demands: ", "\n")));
 			sb.append(IntStream.range(0, nodeCount).mapToDouble(n -> demands[n]).mapToObj(Double::toString)
-					.collect(Collectors.joining("\t", "         ", "")));
+					.collect(Collectors.joining("\t", "Demands:  ", "\n")));
+			sb.append(IntStream.range(0, nodeCount).mapToObj(Integer::toString)
+					.collect(Collectors.joining("\t", "Nodes:    ", "")));
 			break;
 		default:
 			break;

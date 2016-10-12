@@ -19,14 +19,13 @@ public class HungarianPlanner extends Planner {
 	public Map<Ambulance, List<Action>> solve(CityMap map) {
 		int[] availAmbIds = map.getAmbulances().stream().filter(Ambulance::isFree).mapToInt(Ambulance::getId).toArray();
 		int availAmb = availAmbIds.length;
-		
+
 		int[] patIds = map.getPatients().stream()
 				.filter(p -> map.getAmbulances().stream()
-						.noneMatch(a -> a.getPatient() != null && a.getPatient().getId() == p.getId())
-				)
+						.noneMatch(a -> a.getPatient() != null && a.getPatient().getId() == p.getId()))
 				.mapToInt(Patient::getId).toArray();
 		int numPat = patIds.length;
-		
+
 		int[] centroids = new int[0];
 		if (availAmb > numPat) {
 			int numCentroid = availAmb - numPat;
@@ -45,28 +44,31 @@ public class HungarianPlanner extends Planner {
 				// total distance amb->pat->hos / severity factor
 				int patNode = map.getPatients().get(patIds[pat]).getNode();
 				int hosNode = map.closestHospital(patNode);
-				
+
 				double dist = map.shortestDistance(ambNode, patNode) + map.shortestDistance(patNode, hosNode);
-				shortestDistances[amb][pat] = (int) Math.round(dist * 3 / map.getPatients().get(patIds[pat]).getSeverity());
+				shortestDistances[amb][pat] = (int) Math
+						.round(dist * 3 / map.getPatients().get(patIds[pat]).getSeverity());
 			}
 			for (int cen = 0; cen < centroids.length; cen++) {
-				shortestDistances[amb][numPat + cen] = (int) Math.round(3 * map.shortestDistance(ambNode, centroids[cen]));
+				shortestDistances[amb][numPat + cen] = (int) Math
+						.round(3 * map.shortestDistance(ambNode, centroids[cen]));
 			}
 		}
-//		for (int padding = availAmb; padding < rowCount; padding++) {
-//			for (int colum = 0; colum < columnCount; colum++) {
-//				shortestDistances[padding][colum] = 0;
-//			}
-//		}
+		// for (int padding = availAmb; padding < rowCount; padding++) {
+		// for (int colum = 0; colum < columnCount; colum++) {
+		// shortestDistances[padding][colum] = 0;
+		// }
+		// }
 
 		Map<Ambulance, List<Action>> bigplan = new HashMap<Ambulance, List<Action>>();
 
 		int[] destinations = AssignmentProblemSolver.solve(shortestDistances);
-		for (int ambId : availAmbIds) {
+		for (int ambIdx = 0; ambIdx < availAmb; ambIdx++) {
+			int ambId = availAmbIds[ambIdx];
 			Ambulance ambulance = map.getAmbulances().get(ambId);
 			List<Action> plan = new ArrayList<>();
 			int ambNode = map.getAmbulances().get(ambId).getNode();
-			int column = destinations[ambId];
+			int column = destinations[ambIdx];
 			if (column < numPat) {
 				int patNode = map.getPatients().get(patIds[column]).getNode();
 				int hosNode = map.closestHospital(patNode);
@@ -74,15 +76,17 @@ public class HungarianPlanner extends Planner {
 				for (int i = 0; i < pathToPat.size() - 1; i++) {
 					plan.add(new ActionMove(map.getAmbulances().get(ambId), pathToPat.get(i), pathToPat.get(i + 1)));
 				}
-				plan.add(new ActionPick(map.getAmbulances().get(ambId), patNode, map.getPatients().get(patIds[column])));
+				plan.add(
+						new ActionPick(map.getAmbulances().get(ambId), patNode, map.getPatients().get(patIds[column])));
 
 				ArrayList<Integer> pathToHos = map.shortestPath(patNode, hosNode);
 				for (int i = 0; i < pathToHos.size() - 1; i++) {
 					plan.add(new ActionMove(map.getAmbulances().get(ambId), pathToHos.get(i), pathToHos.get(i + 1)));
 				}
-				plan.add(new ActionDrop(map.getAmbulances().get(ambId), hosNode, map.getPatients().get(patIds[column])));
+				plan.add(
+						new ActionDrop(map.getAmbulances().get(ambId), hosNode, map.getPatients().get(patIds[column])));
 			} else {
-				int cenNode = centroids[column-numPat];
+				int cenNode = centroids[column - numPat];
 				ArrayList<Integer> pathToCen = map.shortestPath(ambNode, cenNode);
 				for (int i = 0; i < pathToCen.size() - 1; i++) {
 					plan.add(new ActionMove(map.getAmbulances().get(ambId), pathToCen.get(i), pathToCen.get(i + 1)));
@@ -92,9 +96,10 @@ public class HungarianPlanner extends Planner {
 		}
 
 		// Ambs with a patient
-		int[] busyAmbIds = map.getAmbulances().stream().filter(a->!a.isFree()).mapToInt(Ambulance::getId).toArray();
-		
-		for (int ambId : busyAmbIds) {
+		int[] busyAmbIds = map.getAmbulances().stream().filter(a -> !a.isFree()).mapToInt(Ambulance::getId).toArray();
+
+		for (int ambIdx = 0; ambIdx < busyAmbIds.length; ambIdx++) {
+			int ambId = busyAmbIds[ambIdx];
 			Ambulance ambulance = map.getAmbulances().get(ambId);
 			List<Action> plan = new ArrayList<>();
 			int ambNode = map.getAmbulances().get(ambId).getNode();
@@ -104,10 +109,10 @@ public class HungarianPlanner extends Planner {
 			for (int i = 0; i < pathToHos.size() - 1; i++) {
 				plan.add(new ActionMove(map.getAmbulances().get(ambId), pathToHos.get(i), pathToHos.get(i + 1)));
 			}
-			plan.add(new ActionDrop(map.getAmbulances().get(ambId), hosNode, map.getPatients().get(patId)));
+			plan.add(new ActionDrop(map.getAmbulances().get(ambId), hosNode, ambulance.getPatient()));
 			bigplan.put(ambulance, plan);
 		}
-		
+
 		return bigplan;
 	}
 

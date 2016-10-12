@@ -31,7 +31,7 @@ public class Ambulance extends NodeContent {
 	}
 	
 	public String toString() {
-		return String.format("A_%d [%s] %s", id, isFree()?"":patient.toString(), isClean()?"":"***");
+		return String.format("A_%d [%s] %s", id, isFree()?"":patient.toString(), isClean()?"":"*");
 	}
 
 	// package-private methods
@@ -51,9 +51,9 @@ public class Ambulance extends NodeContent {
 		if (!isFree()) {
 			throw new IllegalStateException("Patient already on board");
 		}
-		if (!isClean()) {
-			throw new IllegalStateException("Ambulance not clean");
-		}
+//		if (!isClean()) {
+//			throw new IllegalStateException("Ambulance not clean");
+//		}
 		this.patient = patient;
 		this.clean = false;
 	}
