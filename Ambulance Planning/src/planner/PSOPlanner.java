@@ -65,9 +65,13 @@ public class PSOPlanner extends Planner {
 
 		// Find solution
 		double[] particle = pso.run(Long.MAX_VALUE);
-		Plan plan = decodePlan(particle);
+		Plan solution = decodePlan(particle);
+		Map<Ambulance, List<Action>> plan = solution.toMainRepresentation();
 
-		return plan.toMainRepresentation();
+		// Send free ambulances to centroids
+		sendFreeAmbsToCentroids(plan);
+
+		return plan;
 	}
 
 	/**
@@ -392,12 +396,60 @@ public class PSOPlanner extends Planner {
 		return new Pair<>(result, bestCostUpd);
 	}
 
+	/**
+	 *
+	 * Update given plan with actions for free ambulances.
+	 *
+	 * @param plan plan to update
+	 */
+	private void sendFreeAmbsToCentroids(Map<Ambulance, List<Action>> plan) {
+		List<Ambulance> freeAmbs = ambulances.stream().filter(a -> !plan.containsKey(a) || plan.get(a).size() == 0)
+				.collect(Collectors.toList());
+		if (!freeAmbs.isEmpty()) {
+			int[] centroids = MaxCoverage.findMaxCoverageLocations(freeAmbs.size(), map);
+
+			int[][] shortestDistances = new int[freeAmbs.size()][centroids.length];
+			for (int ambIdx = 0; ambIdx < freeAmbs.size(); ambIdx++) {
+				Ambulance amb = freeAmbs.get(ambIdx);
+				int ambNode = amb.getNode();
+				for (int cen = 0; cen < centroids.length; cen++) {
+					shortestDistances[ambIdx][cen] = (int) Math.round(map.shortestDistance(ambNode, centroids[cen]));
+				}
+			}
+			int[] destinations = AssignmentProblemSolver.solve(shortestDistances);
+			for (int ambIdx = 0; ambIdx < freeAmbs.size(); ambIdx++) {
+				Ambulance amb = freeAmbs.get(ambIdx);
+				List<Action> actions = new ArrayList<>();
+				insertMoveActions(actions, amb, amb.getNode(), centroids[destinations[ambIdx]]);
+				plan.put(amb, actions);
+			}
+
+		}
+	}
+
 
 	/**
 	 * Wrapper for shortestDistance method in CityMap.
 	 */
 	private double shortestDistance(NodeContent a, NodeContent b) {
 		return map.shortestDistance(a.getNode(), b.getNode());
+	}
+
+	/**
+	 * Add full path to actions list
+	 * @param actions list where to append actions
+	 * @param amb current ambulance
+	 * @param from source node
+	 * @param to destination node
+	 */
+	private void insertMoveActions(List<Action> actions, Ambulance amb, int from, int to) {
+		List<Integer> path = map.shortestPath(from, to);
+
+		for (int i = 0; i < path.size() - 1; i++) {
+			int s = path.get(i);
+			int f = path.get(i + 1);
+			actions.add(new ActionMove(amb, s, f));
+		}
 	}
 
 
@@ -490,16 +542,6 @@ public class PSOPlanner extends Planner {
 			return bigplan;
 		}
 
-		private void insertMoveActions(List<Action> actions, Ambulance amb, int from, int to) {
-			List<Integer> path = map.shortestPath(from, to);
-
-			for (int i = 0; i < path.size() - 1; i++) {
-				int s = path.get(i);
-				int f = path.get(i + 1);
-				actions.add(new ActionMove(amb, s, f));
-			}
-		}
-
 		@Override
 		public String toString() {
 			StringBuilder str = new StringBuilder();
@@ -545,6 +587,7 @@ public class PSOPlanner extends Planner {
 				{0,0,0,0,1,0,0}
 		};
 		double[] demands = new double[7];
+		Arrays.fill(demands, 2);
 		List<List<NodeContent>> contents = new ArrayList<>();
 		// Constructors are package-private, for testing purpose can temporary set them to public
 //		Patient p1 = new Patient(2, 1, 3);
@@ -553,7 +596,7 @@ public class PSOPlanner extends Planner {
 //		Patient p4 = new Patient(4, 4, 1);
 //		p3.load();
 //		p3.unload(); // pretend p3 is already in hospital
-//		/*1*/contents.add(Arrays.asList(new Ambulance(0, 1, null, true)));
+//		/*1*/contents.add(Arrays.asList(new Ambulance(0, 1, null, true), new Ambulance(0, 3, null, true), new Ambulance(0, 5, null, true), new Ambulance(0, 4, null, true)));
 //		/*2*/contents.add(Arrays.asList(p2));
 //		/*3*/contents.add(Arrays.asList(p1));
 //		/*4*/contents.add(Arrays.asList(new Hospital(3, 1, 3)));
