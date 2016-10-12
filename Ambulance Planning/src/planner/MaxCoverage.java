@@ -219,6 +219,8 @@ public class MaxCoverage {
 				iter++;
 			}
 		
+			annotateNodes = annotate(distance, bestGuess);
+			bestGuess = findOptCentre(numAmbulances, distance, demandNorm, demand, annotateNodes);
 			optLocation = bestGuess;
 		}
 
@@ -327,7 +329,7 @@ public class MaxCoverage {
 				for (int y = 0; y < lstSize; y++) {
 					if (classNow.get(y) != classNow.get(x)) {
 						weightDist[iter][0] = demandNorm[classNow.get(y)];
-						//weightDist[iter][2] = demand[classNow.get(y)];
+						weightDist[iter][2] = demand[classNow.get(y)];
 						weightDist[iter][1] = distance[classNow.get(x)][classNow.get(y)];
 						iter++;
 					}
@@ -347,6 +349,82 @@ public class MaxCoverage {
 		return optLocation;
 	}
 
+	
+	public static int[] findOptCentre(int numAmb, double[][] distance, double[] demandNorm, double[] demand, int[] classArr) {
+		
+		int[] optLocation = new int[numAmb];
+		int numNodes = classArr.length;
+		
+		for(int i = 0; i<numAmb; i++)
+		{
+			List<Integer> classNow = new ArrayList<Integer>();
+			for(int j=0; j<numNodes; j++)
+			{
+				if(classArr[j]==i)
+					classNow.add(j);
+			} // end of list for
+			
+			int lstSize = classNow.size();
+			
+			if(lstSize==1)
+			{
+				optLocation[i] = classNow.get(0);
+				continue;
+			}
+			
+		//	double max = Double.NEGATIVE_INFINITY;
+			double min = Double.POSITIVE_INFINITY;
+			int bestCentroid = -1;
+			
+			for(int x = 0; x<lstSize; x++)
+			{
+				int iter = 0;
+				double[][] weightDist = new double[lstSize-1][3];
+				 
+				for(int y = 0; y<lstSize; y++)
+				{
+					if(classNow.get(y)!=classNow.get(x))
+					{
+						weightDist[iter][0] = demandNorm[classNow.get(y)];
+						weightDist[iter][1] = distance[classNow.get(x)][classNow.get(y)];
+						weightDist[iter][2] = demand[classNow.get(y)];
+						iter++;
+					}
+				}
+				double currConf = penaltyFinalDecision(weightDist, demand[classNow.get(x)]);
+				//System.out.println("PENALTY = " + currConf);
+				/*if(currConf>max)
+				{
+					max = currConf;
+					bestCentroid = classNow.get(x);
+				}*/
+				
+				if(currConf<min)
+				{
+					min = currConf;
+					bestCentroid = classNow.get(x);
+				}
+				// if else condn for min
+			}
+			optLocation[i] = bestCentroid;
+		} // end of main class for
+		
+		return optLocation;
+	}
+	
+	public static double penaltyFinalDecision(double[][] weightDist, double demNode) {
+		double num = 0;
+		double den = 0;
+		for(int i = 0; i<weightDist.length; i++)
+		{
+			num+=(weightDist[i][2])*(weightDist[i][1]);
+			den+=(weightDist[i][2]);
+			//coverage+=weightDist[i][0]*weightDist[i][0]*(weightDist[i][2]/(weightDist[i][1]));
+		}
+		den+=demNode;
+		return num/den;
+	}
+	
 	/*
 	 * Calculates the confidence for a node to be an apt location for the ambulance to be placed in a cluster
 	 * @params weightDist - weighted distance from other nodes
@@ -363,14 +441,13 @@ public class MaxCoverage {
 	}*/
 
 	public static double penalty(double[][] weightDist, double demNode) {
-		double numerator = 0;
 		double denominator = 0;
 		for(int i = 0; i<weightDist.length; i++)
 		{
-			numerator+=weightDist[i][0]*weightDist[i][1];
-			denominator+=weightDist[i][0];
+			//numerator+=weightDist[i][0];
+			denominator+=weightDist[i][1];
 		}
-		return 1/(numerator/denominator);
+		return 1.0/(denominator/(weightDist.length+1));
 	}
 	
 	/*
