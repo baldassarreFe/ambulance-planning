@@ -6,6 +6,7 @@ import utils.Pair;
 import utils.Utils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Planner that uses PSO as a tool to find better solution.
@@ -44,7 +45,7 @@ public class PSOPlanner extends Planner {
 		this.map = map;
 
 		ambulances = map.getAmbulances();
-		patients = map.getPatients();
+		patients = map.getPatients().stream().filter(Patient::isWaiting).collect(Collectors.toList());
 		hospitals = map.getHospitals();
 		ambCnt = ambulances.size();
 		patCnt = patients.size();
@@ -542,12 +543,18 @@ public class PSOPlanner extends Planner {
 		double[] demands = new double[7];
 		List<List<NodeContent>> contents = new ArrayList<>();
 		// Constructors are package-private, for testing purpose can temporary set them to public
+//		Patient p1 = new Patient(2, 1, 3);
+//		Patient p2 = new Patient(1, 2, 2);
+//		Patient p3 = new Patient(5, 3, 2);
+//		Patient p4 = new Patient(4, 4, 1);
+//		p3.load();
+//		p3.unload(); // pretend p3 is already in hospital
 //		/*1*/contents.add(Arrays.asList(new Ambulance(0, 1, null, true)));
-//		/*2*/contents.add(Arrays.asList(new Patient(1, 2, 2)));
-//		/*3*/contents.add(Arrays.asList(new Patient(2, 1, 3)));
+//		/*2*/contents.add(Arrays.asList(p2));
+//		/*3*/contents.add(Arrays.asList(p1));
 //		/*4*/contents.add(Arrays.asList(new Hospital(3, 1, 3)));
-//		/*5*/contents.add(Arrays.asList(new Ambulance(4, 2, null, true), new Patient(4, 4, 1)));
-//		/*6*/contents.add(Arrays.asList(new Patient(5, 3, 2)));
+//		/*5*/contents.add(Arrays.asList(new Ambulance(4, 2, null, true), p4));
+//		/*6*/contents.add(Arrays.asList(p3));
 //		/*7*/contents.add(Arrays.asList(new Hospital(6, 2, 3)));
 
 		CityMap map = new CityMap(adjMatrix, null, contents, demands);
