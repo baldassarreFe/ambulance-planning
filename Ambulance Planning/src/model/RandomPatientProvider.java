@@ -8,12 +8,14 @@ public class RandomPatientProvider extends PatientProvider {
 
 	private Random random = new Random(504);
 	private double prob;
+	private int maxNumberOfPatients;
 
 	private double[] demands;
 	private double demandSum;
 
-	public RandomPatientProvider(double prob, CityMap map) {
+	public RandomPatientProvider(double prob, int maxNumberOfPatients, CityMap map) {
 		this.prob = prob;
+		this.maxNumberOfPatients = maxNumberOfPatients;
 
 		demands = map.getDemands().stream().mapToDouble(x -> x).toArray();
 		demandSum = DoubleStream.of(demands).sum();
@@ -21,11 +23,12 @@ public class RandomPatientProvider extends PatientProvider {
 
 	@Override
 	public boolean hasNewPatient() {
-		return random.nextDouble() < prob;
+		return maxNumberOfPatients > 0 && random.nextDouble() < prob;
 	}
 
 	@Override
 	public Patient getNewPatient() {
+		maxNumberOfPatients--;
 		double demand = random.nextDouble() * demandSum;
 		int node = 0;
 		while (node < demands.length - 1 && demand > 0) {

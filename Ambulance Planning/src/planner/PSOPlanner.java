@@ -85,12 +85,12 @@ public class PSOPlanner extends Planner {
 	private void initAmbLocations() {
 		ambLocations = new ArrayList<>();
 		patInAmb = new HashSet<>();
-		for (int i = 0; i < ambulances.size(); i++) {
-			Ambulance amb = ambulances.get(i);
+		for (int ambIdx = 0; ambIdx < ambulances.size(); ambIdx++) {
+			Ambulance amb = ambulances.get(ambIdx);
 			if (amb.isFree()) {
 				ambLocations.add(amb.getNode());
 			} else {
-				ambLocations.add(hospitals.get(singleOptHospitals[i]).getNode());
+				ambLocations.add(hospitals.get(singleOptHospitals[ambIdx]).getNode());
 				patInAmb.add(amb.getPatient().getId());
 			}
 		}
@@ -498,8 +498,8 @@ public class PSOPlanner extends Planner {
 
 			Map<Ambulance, List<Action>> bigplan = new HashMap<>();
 
-			for (int i = 0; i < ambCnt; i++) {
-				Ambulance amb = ambulances.get(i);
+			for (int ambIdx = 0; ambIdx < ambCnt; ambIdx++) {
+				Ambulance amb = ambulances.get(ambIdx);
 				List<Action> actions = new ArrayList<>();
 				/*
 				 * Do not forget to add route to the closest hospital if
@@ -511,17 +511,17 @@ public class PSOPlanner extends Planner {
 					actions.add(new ActionDrop(amb, hos.getNode(), amb.getPatient()));
 				}
 
-				if (routes[i].size() == 0) {
+				if (routes[ambIdx].size() == 0) {
 					continue;
 				}
 				// Pick first patient
-				int patIdx = routes[i].get(0);
+				int patIdx = routes[ambIdx].get(0);
 				Patient pat = patients.get(patIdx);
-				insertMoveActions(actions, amb, amb.getNode(), pat.getNode());
+				insertMoveActions(actions, amb, ambLocations.get(ambIdx), pat.getNode());
 				actions.add(new ActionPick(amb, pat.getNode(), pat));
 
-				for (int j = 0; j < routes[i].size() - 1; j++) {
-					int nxtPatIdx = routes[i].get(j + 1);
+				for (int j = 0; j < routes[ambIdx].size() - 1; j++) {
+					int nxtPatIdx = routes[ambIdx].get(j + 1);
 
 					// Drop current patient in an optimal hospital
 					Hospital hos = hospitals.get(optHospitals[patIdx][nxtPatIdx]);

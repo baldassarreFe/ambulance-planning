@@ -1,6 +1,5 @@
 package model;
 
-import java.util.Iterator;
 
 public class ActionMove extends Action {
 

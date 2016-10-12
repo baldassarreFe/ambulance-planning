@@ -45,6 +45,8 @@ public class Ambulance extends NodeContent {
 		this.id = id;
 		this.patient = patient;
 		this.clean = clean;
+
+		ID = Math.max(ID, id + 1);  // avoid id collisions, ID is always greater than max id
 	}
 
 	void load(Patient patient) {

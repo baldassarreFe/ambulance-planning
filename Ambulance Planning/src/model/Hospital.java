@@ -28,6 +28,8 @@ private static int ID = 0;
 		super(node);
 		this.id = id;
 		this.maxSeverity = maxSeverity;
+
+		ID = Math.max(ID, id + 1);  // avoid id collisions, ID is always greater than max id
 	}
 	
 	void accept(Patient patient) {

@@ -25,7 +25,7 @@ public class Main {
 //		Planner p = new PSOPlanner();
 		CityMap map = CityParser.parse(cityFileName);
 
-		PatientProvider pProvider = new RandomPatientProvider(0.0, map);
+		PatientProvider pProvider = new RandomPatientProvider(0.5, 10, map);
 //		PatientProvider pProvider = new ManualPatientProvider(in);
 
 		System.out.println(map.represent(Print.ADJ_MATRIX));
