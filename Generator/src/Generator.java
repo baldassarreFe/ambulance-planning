@@ -171,7 +171,7 @@ public class Generator {
 	
 	/**
 	 * Generates definitions of objects.
-	 * Patients -> Patient(p1,priority)
+	 * Patients -> Patient(p1) and (= (Priority p1) 3)
 	 * Ambulances -> Ambulance(a1)
 	 * Hospitals -> Hospital(h1)
 	 * 
@@ -202,7 +202,8 @@ public class Generator {
 				time = r.nextInt(MAX_ROUNDS);			
 			
 			s.append("(Patient(p" + i + "," + priority + "," + time +"))\n");*/
-			s.append("(Patient(p" + i + "," + priority + "))\n");
+			s.append("(Patient(p" + i + "))\n");
+			s.append("(= (Priority(p" + i + ") " + priority + ")))\n");
 		}
 		
 		/* Ambulances */
@@ -221,7 +222,7 @@ public class Generator {
 	
 	/**
 	 * Generates initial positions for every object.
-	 * At(Oi,l1)
+	 * At(Oi l1)
 	 * 
 	 * @param patient Information regarding number of patients and prob of each priority
 	 * @param amb Number of ambulances
@@ -260,7 +261,7 @@ public class Generator {
 				
 				int node = coordToNode.get(location);				
 				for(int n = 0 ; n < nPatients && p < patients; n++, p++) {
-					s.append("(At(p" + p + ",l" + node + "))\n");
+					s.append("(At(p" + p + " l" + node + "))\n");
 				}
 			}
 		}
@@ -293,7 +294,7 @@ public class Generator {
 			int randLoc = r.nextInt(loc.size());	
 			int node = coordToNode.get(loc.get(randLoc));	
 			
-			s.append("(At(a" + i + ",l" + node + "))\n");
+			s.append("(At(a" + i + " l" + node + "))\n");
 			s.append("(Available(a" + i + "))\n");
 		}
 		
@@ -304,7 +305,7 @@ public class Generator {
 			int randLoc = r.nextInt(loc.size());	
 			int node = coordToNode.get(loc.get(randLoc));	
 			
-			s.append("(At(h" + i + ",l" + node + "))\n");
+			s.append("(At(h" + i + " l" + node + "))\n");
 		}
 		s.append(")\n"); // Close init
 		
@@ -357,7 +358,9 @@ public class Generator {
 	/* Generate Strings */
 	/**
 	 * Creates the locations as the name of the node, its coordinate and a demand
-	 * Location(l1,x,y,w)
+	 * Location(l1)
+	 * (= (LocationCoord(l1) x y))
+	 * (= (LocationDemand(l1) d))
 	 * 
 	 * @param node Number of nodes
 	 * @param coord Coordinate assigned to node
@@ -380,12 +383,17 @@ public class Generator {
 			locationDemand.get(w).add(coord);			
 		}
 		
-		return "(Location(l" + node + "," + coord.toString() + "," + w +"))\n";		
+		StringBuilder s = new StringBuilder("(Location(l" + node + "))\n");
+		s.append("(= (LocationCoord(l" + node + ") " + coord.toString() + "))\n");
+		s.append("(= (LocationDemand(l" + node + ") " + w + "))\n");		
+		
+		return s.toString();
 	}
 	
 	/**
 	 * Creates the road between two nodes with the distance between them
-	 * Road(l1,l2,w)
+	 * Road(l1 l2)
+	 * (=(Distance(l1 l2) d))
 	 * 
 	 * @param node1 Number of the first node to join
 	 * @param node2 Number of the second node to join
@@ -406,7 +414,10 @@ public class Generator {
 		// Add noise (or not)
 		d += noise * r.nextDouble();
 		
-		return "(Road(l" + node1 + ",l" + node2 + "," + d +"))\n";		
+		StringBuilder s = new StringBuilder("(Road(l" + node1 + " l" + node2 + "))\n");
+		s.append("(= (Distance(l" + node1 + " l" + node2 + ") " + d + ")\n");
+		
+		return s.toString();
 	}
 
 }
