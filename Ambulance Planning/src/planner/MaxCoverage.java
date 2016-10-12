@@ -326,11 +326,13 @@ public class MaxCoverage {
 
 				for (int y = 0; y < lstSize; y++) {
 					if (classNow.get(y) != classNow.get(x)) {
-						weightDist[iter][0] = demand[classNow.get(y)];
+						weightDist[iter][0] = demandNorm[classNow.get(y)];
+						//weightDist[iter][2] = demand[classNow.get(y)];
 						weightDist[iter][1] = distance[classNow.get(x)][classNow.get(y)];
 						iter++;
 					}
 				}
+				// this is where the tweaking is required
 				double currConf = penalty(weightDist, demand[classNow.get(x)]);
 				// System.out.println("PENALTY = " + currConf);
 				if (currConf > max) {
@@ -350,16 +352,27 @@ public class MaxCoverage {
 	 * @params weightDist - weighted distance from other nodes
 	 * @params demNode - demand at that node 
 	 */
-	public static double penalty(double[][] weightDist, double demNode) {
+	/*public static double penalty(double[][] weightDist, double demNode) {
 		double numerator = 0;
 		double denominator = 0;
 		for (int i = 0; i < weightDist.length; i++) {
 			numerator += weightDist[i][0];
 			denominator += weightDist[i][0] * (1 / weightDist[i][1]);
 		}
-		return Math.sqrt(demNode) / (numerator / denominator);
-	}
+		return 1.0 / (numerator / denominator);
+	}*/
 
+	public static double penalty(double[][] weightDist, double demNode) {
+		double numerator = 0;
+		double denominator = 0;
+		for(int i = 0; i<weightDist.length; i++)
+		{
+			numerator+=weightDist[i][0]*weightDist[i][1];
+			denominator+=weightDist[i][0];
+		}
+		return 1/(numerator/denominator);
+	}
+	
 	/*
 	 * utility fn for the dijkstra's algorithm
 	 */
