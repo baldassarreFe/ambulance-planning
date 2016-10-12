@@ -14,11 +14,12 @@ public class ActionMove extends Action {
 
 	@Override
 	protected void checkPreconditions(CityMap cityMap) {
-		// TODO
+		assert ambulance.getNode() == from;
+		assert cityMap.areAdjacent(from, to);
 	}
 
 	@Override
 	protected void applyEffects(CityMap cityMap) {
-		// TODO
+		ambulance.setNode(to);
 	}
 }
