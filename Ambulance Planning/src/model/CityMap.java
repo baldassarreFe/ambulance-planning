@@ -100,6 +100,10 @@ public class CityMap {
 
 		computePaths();
 	}
+	
+	public double[][] getShortestDistances() {
+		return shortestDistances;
+	}
 
 	public int ambulanceCount() {
 		return ambulanceCount;
@@ -278,5 +282,9 @@ public class CityMap {
 
 	public static enum Print {
 		ALL, ADJ_MATRIX, SHORTEST_DISTANCES_MATRIX, SHORTEST_PATHS, AMBULANCES_LOCATIONS, PATIENT_LOCATIONS, HOSPITAL_LOCATIONS, DEMANDS
+	}
+
+	public int closestHospital(int from) {
+		return IntStream.range(0, nodeCount).filter(n->contents.get(n).stream().anyMatch(c->c instanceof Hospital)).mapToObj(n->n).min((n1,n2)->(int) (shortestDistances[from][n2]-shortestDistances[from][n1])).get();
 	}
 }

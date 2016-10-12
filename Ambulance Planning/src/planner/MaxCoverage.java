@@ -417,4 +417,13 @@ public class MaxCoverage {
 		maxDetails[1] = max;
 		return maxDetails;
 	}
+	
+	public static int[] findMaxCoverageLocations(int numCentroid, CityMap map) {
+		double[][] distance = map.getShortestDistances();
+		double[] demand = map.getDemands().stream().mapToDouble(d->d).toArray();
+		double max = map.getDemands().stream().max(Double::compareTo).get();
+		double[] demandNorm = map.getDemands().stream().mapToDouble(d -> d/max).toArray();
+		
+		return findMaxCoverageLocations(numCentroid, distance, demandNorm, demand);		
+	}
 }
