@@ -6,6 +6,7 @@ import utils.Pair;
 import utils.Utils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Planner that uses PSO as a tool to find better solution.
@@ -24,6 +25,13 @@ public class PSOPlanner extends Planner {
 	private int patCnt;
 	private int hosCnt;
 
+	/*
+	 * An ambulance is empty - location is real location of the ambulance.
+	 * An ambulance has a patient - location is the location of the closest hospital.
+	 */
+	private List<Integer> ambLocations;
+	private Set<Integer> patInAmb;
+
 	private int particleDims;
 	private double[][] particleBounds;
 
@@ -37,7 +45,7 @@ public class PSOPlanner extends Planner {
 		this.map = map;
 
 		ambulances = map.getAmbulances();
-		patients = map.getPatients();
+		patients = map.getPatients().stream().filter(Patient::isWaiting).collect(Collectors.toList());
 		hospitals = map.getHospitals();
 		ambCnt = ambulances.size();
 		patCnt = patients.size();
@@ -49,6 +57,8 @@ public class PSOPlanner extends Planner {
 
 		precalcOptimalHospitals();
 
+		initAmbLocations();
+
 		// Initialize PSO
 		evaluator = new VRPEvaluator();
 		pso = new PSO(evaluator, particleDims, particleBounds);
@@ -58,6 +68,23 @@ public class PSOPlanner extends Planner {
 		Plan plan = decodePlan(particle);
 
 		return plan.toMainRepresentation();
+	}
+
+	/**
+	 * Fill the <code>ambLocations</code> list.
+	 */
+	private void initAmbLocations() {
+		ambLocations = new ArrayList<>();
+		patInAmb = new HashSet<>();
+		for (int i = 0; i < ambulances.size(); i++) {
+			Ambulance amb = ambulances.get(i);
+			if (amb.isFree()) {
+				ambLocations.add(amb.getNode());
+			} else {
+				ambLocations.add(hospitals.get(singleOptHospitals[i]).getNode());
+				patInAmb.add(amb.getPatient().getId());
+			}
+		}
 	}
 
 	/**
@@ -111,6 +138,19 @@ public class PSOPlanner extends Planner {
 				}
 			}
 		}
+	}
+
+	private Hospital closestHospital(int node) {
+		Hospital hos = null;
+		double dist = Double.POSITIVE_INFINITY;
+		for (Hospital h : hospitals) {
+			double curDist = map.shortestDistance(node, h.getNode());
+			if (hos == null || dist > curDist) {
+				hos = h;
+				dist = curDist;
+			}
+		}
+		return hos;
 	}
 
 	/**
@@ -403,6 +443,16 @@ public class PSOPlanner extends Planner {
 
 			for (int i = 0; i < ambCnt; i++) {
 				Ambulance amb = ambulances.get(i);
+				/*
+				 * Do not forget to add route to the closest hospital if
+				 * already have a patient.
+				 */
+				if (!amb.isFree()) {
+					Hospital hos = closestHospital(amb.getNode());
+					insertMoveActions(actions, amb, amb.getNode(), hos.getNode());
+					actions.add(new ActionDrop(amb, hos.getNode(), amb.getPatient()));
+				}
+
 				if (routes[i].size() == 0) {
 					continue;
 				}
@@ -453,6 +503,10 @@ public class PSOPlanner extends Planner {
 			for (int i = 0; i < routes.length; i++) {
 				int id = ambulances.get(i).getId();
 				str.append("A").append(id).append(" ->");
+				if (!ambulances.get(i).isFree()) {
+					Hospital hos = closestHospital(ambulances.get(i).getNode());
+					str.append(" H").append(hos.getId());
+				}
 				if (routes[i].size() == 0) {
 					str.append("\n");
 					continue;
@@ -489,12 +543,18 @@ public class PSOPlanner extends Planner {
 		double[] demands = new double[7];
 		List<List<NodeContent>> contents = new ArrayList<>();
 		// Constructors are package-private, for testing purpose can temporary set them to public
+//		Patient p1 = new Patient(2, 1, 3);
+//		Patient p2 = new Patient(1, 2, 2);
+//		Patient p3 = new Patient(5, 3, 2);
+//		Patient p4 = new Patient(4, 4, 1);
+//		p3.load();
+//		p3.unload(); // pretend p3 is already in hospital
 //		/*1*/contents.add(Arrays.asList(new Ambulance(0, 1, null, true)));
-//		/*2*/contents.add(Arrays.asList(new Patient(1, 2, 2)));
-//		/*3*/contents.add(Arrays.asList(new Patient(2, 1, 3)));
+//		/*2*/contents.add(Arrays.asList(p2));
+//		/*3*/contents.add(Arrays.asList(p1));
 //		/*4*/contents.add(Arrays.asList(new Hospital(3, 1, 3)));
-//		/*5*/contents.add(Arrays.asList(new Ambulance(4, 2, null, true), new Patient(4, 4, 1)));
-//		/*6*/contents.add(Arrays.asList(new Patient(5, 3, 2)));
+//		/*5*/contents.add(Arrays.asList(new Ambulance(4, 2, null, true), p4));
+//		/*6*/contents.add(Arrays.asList(p3));
 //		/*7*/contents.add(Arrays.asList(new Hospital(6, 2, 3)));
 
 		CityMap map = new CityMap(adjMatrix, null, contents, demands);

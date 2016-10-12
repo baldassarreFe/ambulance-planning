@@ -14,12 +14,16 @@ public class ActionDrop extends Action {
 
 	@Override
 	protected void checkPreconditions(CityMap cityMap) {
-		// TODO
+		assert ambulance.getNode() == at;  // ambulance at location
+		assert cityMap.getContentAt(at).stream().anyMatch(c -> c instanceof Hospital);  // hospital at location
+		assert ambulance.getPatient() == p;  // patient is the same
 	}
 
 	@Override
 	protected void applyEffects(CityMap cityMap) {
-		// TODO
+		ambulance.unload();
+		p.unload();
+		p.setNode(at);
 	}
 	
 	@Override

@@ -16,7 +16,7 @@ public class Pair<X, Y> {
 	}
 	
 	public String toString() {
-		return x + "," + y;
+		return x + " " + y;
 		
 	}
 }
