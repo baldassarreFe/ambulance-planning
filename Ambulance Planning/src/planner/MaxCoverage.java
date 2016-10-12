@@ -350,7 +350,7 @@ public class MaxCoverage {
 	 * @params weightDist - weighted distance from other nodes
 	 * @params demNode - demand at that node 
 	 */
-	public static double penalty(double[][] weightDist, double demNode) {
+		/*public static double penalty(double[][] weightDist, double demNode) {
 		double numerator = 0;
 		double denominator = 0;
 		for (int i = 0; i < weightDist.length; i++) {
@@ -358,6 +358,16 @@ public class MaxCoverage {
 			denominator += weightDist[i][0] * (1 / weightDist[i][1]);
 		}
 		return 1.0 / (numerator / denominator);
+	}*/
+
+	public static double penalty(double[][] weightDist, double demNode) {
+		double denominator = 0;
+		for(int i = 0; i<weightDist.length; i++)
+		{
+			//numerator+=weightDist[i][0];
+			denominator+=weightDist[i][1];
+		}
+		return 1.0/(denominator/(weightDist.length+1));
 	}
 
 	/*
