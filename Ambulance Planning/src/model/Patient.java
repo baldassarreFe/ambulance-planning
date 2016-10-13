@@ -9,10 +9,21 @@ public class Patient extends NodeContent {
 	private boolean waiting = true;
 	private boolean inHospital = false;
 
+	/**Builds a new {@link Patient} at the location provided and with the severity passed as parameter.
+	 * The id is autoincremented.
+	 * @param node
+	 * @param severity
+	 */
 	public Patient(int node, int severity) {
 		this(node, -1, severity);
 	}
 
+	/**Builds a new {@link Patient} at the location provided and with the severity passed as parameter.
+	 * The provided id is used.
+	 * @param node
+	 * @param id
+	 * @param severity
+	 */
 	Patient(int node, int id, int severity) {
 		super(node);
 		this.id = id == -1 ? COUNT : id;

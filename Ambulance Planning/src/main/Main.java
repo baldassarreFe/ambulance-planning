@@ -11,6 +11,7 @@ import java.util.Map;
 
 import model.Action;
 import model.ActionDrop;
+import model.ActionMove;
 import model.Ambulance;
 import model.CityMap;
 import model.CityMap.Print;
@@ -22,8 +23,12 @@ import planner.HungarianPlanner;
 import planner.Planner;
 
 public class Main {
+	
+	private static double totalDistance = 0.0;
+	private static long totalWaitingTime = 0;
+	
 	public static void main(String[] args) throws IOException {
-		// args parsing
+		// parsing the problem description from the command line
 		String cityFileName = args[0];
 
 		// debugging utilities
@@ -98,11 +103,18 @@ public class Main {
 					solutionWriter.println("  " + a);
 					eventsWriter.println("  " + a);
 					map.performAction(a);
+					if (a instanceof ActionMove) {
+						int from = ((ActionMove) a).getFrom();
+						int to= ((ActionMove) a).getTo();
+						totalDistance += map.shortestDistance(from, to);
+					}
 					if (a instanceof ActionDrop && planner.replanAfterDropAction()) {
 						replanningNeeded = true;
 					}
 				}
 			}
+			
+			totalWaitingTime += map.getPatients().stream().filter(Patient::isWaiting).count();
 
 			if (pProvider.hasNewPatient()) {
 				Patient patient = pProvider.getNewPatient();
@@ -115,9 +127,16 @@ public class Main {
 
 		System.out.println("\nDone!");
 		System.out.println(map.represent(Print.AMBULANCES_LOCATIONS));
+		System.out.println("\nMetrics:");
+		System.out.println("  Total distance travelled: " + totalDistance);
+		System.out.println("  Total time patients waited: " + totalWaitingTime);
+		
 
 		eventsWriter.println("\nDone!");
 		eventsWriter.println(map.represent(Print.AMBULANCES_LOCATIONS));
+		eventsWriter.println("\nMetrics:");
+		eventsWriter.println("  Total distance travelled: " + totalDistance);
+		eventsWriter.println("  Total time patients waited: " + totalWaitingTime);
 
 		solutionWriter.close();
 		eventsWriter.close();
