@@ -14,7 +14,8 @@ public class ActionDrop extends Action {
 
 	@Override
 	protected void checkPreconditions(CityMap cityMap) {
-		if (ambulance.getNode() != at || !cityMap.getContentAt(at).stream().anyMatch(c -> c instanceof Hospital) || ambulance.getPatient() != p)
+		if (!(ambulance.getNode() == at && cityMap.getContentAt(at).stream().anyMatch(c -> c instanceof Hospital)
+				&& ambulance.getPatient() == p))
 			throw new IllegalStateException();
 	}
 

@@ -14,7 +14,7 @@ public class ActionPick extends Action {
 
 	@Override
 	protected void checkPreconditions(CityMap cityMap) {
-		if (!p.isWaiting() || !ambulance.isFree() || p.getNode() != at || ambulance.getNode() != at)
+		if (!(p.isWaiting() && ambulance.isFree() && p.getNode() == at && ambulance.getNode() == at))
 			throw new IllegalStateException();
 	}
 

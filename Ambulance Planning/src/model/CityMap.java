@@ -1,5 +1,7 @@
 package model;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -85,6 +87,9 @@ public class CityMap {
 	private final int hospitalCount;
 
 	public CityMap(double[][] adjMatrix, double[][] coordinates, List<List<NodeContent>> contents, double[] demands) {
+		// Just to debug
+		dump(adjMatrix);
+
 		nodeCount = adjMatrix.length;
 		ambulanceCount = (int) contents.stream().flatMap(list -> list.stream()).filter(nc -> nc instanceof Ambulance)
 				.count();
@@ -98,6 +103,27 @@ public class CityMap {
 		shortestsPaths = new ArrayList<?>[nodeCount][nodeCount];
 
 		computePaths();
+	}
+
+	private static void dump(double[][] adjMatrix) {
+		try {
+			PrintWriter pw = new PrintWriter("cityDump.txt");
+
+			// cut and paste http://graphonline.ru/en/
+			pw.println(Arrays.stream(adjMatrix).map(
+					row -> Arrays.stream(row).mapToObj(v -> (int) Math.round(v) + "").collect(Collectors.joining(", ")))
+					.collect(Collectors.joining("\n")));
+
+			// python friendly
+			pw.println(Arrays.stream(adjMatrix)
+					.map(row -> Arrays.stream(row).mapToObj(v -> (int) Math.round(v) + "")
+							.collect(Collectors.joining(", ", "[", "]")))
+					.collect(Collectors.joining(",\n", "\n[", "]\n")));
+			pw.close();
+		} catch (FileNotFoundException e) {
+			// ignore
+		}
+
 	}
 
 	public double[][] getShortestDistances() {
@@ -262,13 +288,15 @@ public class CityMap {
 							shortestsPaths[from][to].stream().map(n -> "N" + n).collect(Collectors.joining(","))))));
 			break;
 		case AMBULANCES_LOCATIONS:
-			sb.append(getAmbulances().stream().map(a -> String.format("A%d @ N%d", a.getId(), a.getNode())).collect(Collectors.joining("\n", "Ambulances:\n","\n")));
+			sb.append(getAmbulances().stream().map(Ambulance::toString)
+					.collect(Collectors.joining("\n", "Ambulances:\n", "\n")));
 			break;
 		case HOSPITAL_LOCATIONS:
-			sb.append(getHospitals().stream().map(h -> String.format("H%d @ N%d", h.getId(), h.getNode())).collect(Collectors.joining("\n", "Hospitals:\n","\n")));
+			sb.append(getHospitals().stream().map(Hospital::toString)
+					.collect(Collectors.joining("\n", "Hospitals:\n", "\n")));
 			break;
 		case PATIENT_LOCATIONS:
-			sb.append(getPatients().stream().map(p -> String.format("P%d @ N%d", p.getId(), p.getNode())).collect(Collectors.joining("\n", "Patients:\n","\n")));
+			sb.append(getPatients().stream().map(Patient::toString).collect(Collectors.joining("\n", "Patients:\n", "\n")));
 			break;
 		case DEMANDS:
 			sb.append(IntStream.range(0, nodeCount).mapToDouble(n -> demands[n]).mapToObj(Double::toString)
@@ -289,13 +317,13 @@ public class CityMap {
 	public int closestHospital(int from) {
 		double min = Double.POSITIVE_INFINITY;
 		int result = 0;
-		for (int hosNode : getHospitals().stream().mapToInt(h->h.getNode()).toArray()){
+		for (int hosNode : getHospitals().stream().mapToInt(h -> h.getNode()).toArray()) {
 			double dist = shortestDistance(from, hosNode);
-			if (dist<min) {
+			if (dist < min) {
 				result = hosNode;
 				min = dist;
 			}
-		}		
+		}
 		return result;
 	}
 }

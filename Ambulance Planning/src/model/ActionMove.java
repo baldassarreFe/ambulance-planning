@@ -1,7 +1,5 @@
 package model;
 
-import java.util.Iterator;
-
 public class ActionMove extends Action {
 
 	private Ambulance ambulance;
@@ -16,7 +14,7 @@ public class ActionMove extends Action {
 
 	@Override
 	protected void checkPreconditions(CityMap cityMap) {
-		if (ambulance.getNode() != from || !cityMap.areAdjacent(from, to))
+		if (!(ambulance.getNode() == from && cityMap.areAdjacent(from, to)))
 			throw new IllegalStateException();
 	}
 
