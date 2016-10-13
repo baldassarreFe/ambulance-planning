@@ -20,7 +20,9 @@ public class ManualPatientProvider extends PatientProvider {
 
 	@Override
 	public Patient getNewPatient() {
-		return newPatient;
+		Patient p = newPatient;
+		newPatient = null;
+		return p;
 	}
 
 	@Override
