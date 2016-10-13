@@ -218,7 +218,7 @@ public class Generator {
 			
 			s.append("(Patient(p" + i + "," + priority + "," + time +"))\n");*/
 			s.append("(Patient(p" + i + "))\n");
-			s.append("(= (Priority(p" + i + ") " + priority + ")))\n");
+			s.append("(= (Priority(p" + i + ") " + priority + "))\n");
 		}
 		
 		/* Ambulances */
@@ -450,7 +450,7 @@ public class Generator {
 		d += noise * r.nextDouble();
 		
 		StringBuilder s = new StringBuilder("(Road(l" + node1 + " l" + node2 + "))\n");
-		s.append("(= (Distance(l" + node1 + " l" + node2 + ") " + d + ")\n");
+		s.append("(= (Distance(l" + node1 + " l" + node2 + ") " + d + "))\n");
 		
 		return s.toString();
 	}

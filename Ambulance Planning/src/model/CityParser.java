@@ -11,6 +11,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 
+/**
+ * Class that deciphers the PDDL problem file and creates
+ * the objects that represent the city, ambulances, patients...
+ * 
+ * @author Team 14 *
+ */
 public class CityParser {
 
 	/* Constants */
@@ -41,7 +47,11 @@ public class CityParser {
 	private static final int AT_OBJECT = 0;
 	private static final int AT_LOCATION = 1;
 
-	/* Our parser */
+	/**
+	 * Main function that parse the PDDL problem file
+	 * @param cityFileName Path to the file
+	 * @return CityMap object with its contents matching the input file
+	 */
 	public static CityMap parse(String cityFileName) {
 
 		InputStream input;
@@ -106,20 +116,60 @@ public class CityParser {
 
 		return c;
 	}
+	
+	/**
+	 * Method in charge of reading line after line and calling the different
+	 * types of predicates
+	 * 
+	 * @param l Line
+	 * @param adjMatrix Adjacency matrix
+	 * @param coord Cartesian coordinates
+	 * @param demands Demands for each node
+	 * @param contents Content of the nodes
+	 */
+	private void parsePredicate(String l, double[][] adjMatrix, double[][] coord, double[] demands,
+			ArrayList<NodeContent>[] contents) {
 
-	private BufferedReader r;
+		ArrayList<Patient> p = new ArrayList<>();
+		ArrayList<Ambulance> a = new ArrayList<>();
+		ArrayList<Hospital> h = new ArrayList<>();
 
-	private String line;
+		String pred = this.nextLine(); // remove init
 
-	private StringTokenizer st;
+		/* Fist time look for location */
+		do {
+			//
+			if (pred.contains("LocationCoord")) {
+				createLocationCoord(pred, coord);
+			} else if (pred.contains("LocationDemand")) {
+				createLocationDemad(pred, demands);
+			} else if (pred.contains("Distance")) {
+				createRoad(pred, adjMatrix);
+			} else if (pred.contains("Priority")) {
+				createPatient(pred, p);
+			} else if (pred.contains("Ambulance")) {
+				createAmbulance(pred, a);
+			} else if (pred.contains("Hospital")) {
+				createHospital(pred, h);
+			} else if (pred.contains("At")) {
+				createAt(pred, p, a, h, contents);
+			} 
 
-	private String token;
+			pred = this.nextLine();
 
-	/* Kattis functions IO */
-	public CityParser(InputStream i) {
-		r = new BufferedReader(new InputStreamReader(i));
+		} while (!line.equals(")")); // the close of init (before the goal)
+
+		// No need to read the goal, it's fixed in our case
 	}
 
+
+	/* Actions */
+	/**
+	 * Creates an ambulance object 
+	 * 
+	 * @param pred Predicate
+	 * @param ambulances Array containing all the ambulances
+	 */
 	private void createAmbulance(String pred, ArrayList<Ambulance> ambulances) {
 
 		// (Ambulance(a0))
@@ -131,8 +181,16 @@ public class CityParser {
 
 		ambulances.add(a);
 	}
-
-	/* Actions */
+	
+	/**
+	 * Sets the position of patients, ambulances and hospitals
+	 * 
+	 * @param pred Predicate
+	 * @param patients Array containing all the patients
+	 * @param amb Array containing all the ambulances
+	 * @param hosp Array containing all the hospitals
+	 * @param contents Array of arrays for the content of each node
+	 */
 	private void createAt(String pred, ArrayList<Patient> patients, ArrayList<Ambulance> amb, ArrayList<Hospital> hosp,
 			ArrayList<NodeContent>[] contents) {
 
@@ -160,12 +218,13 @@ public class CityParser {
 		}
 
 	}
-
-	private void createAvailable(String pred) {
-		// FIXME: it's fixed as available by default (no need to change now)
-
-	}
-
+	
+	/**
+	 * Creates an ambulance object 
+	 * 
+	 * @param pred Predicate
+	 * @param hospitals Array containing all the hospitals
+	 */
 	private void createHospital(String pred, ArrayList<Hospital> hospitals) {
 
 		// (Hospital(h1))
@@ -178,6 +237,12 @@ public class CityParser {
 		hospitals.add(h);
 	}
 
+	/**
+	 * Assign a coordinate to a location
+	 * 
+	 * @param pred Predicate
+	 * @param coord Array of coordinates
+	 */
 	private void createLocationCoord(String pred, double[][] coord) {
 
 		// (= (LocationCoord(l0) 8 7))
@@ -193,6 +258,12 @@ public class CityParser {
 
 	}
 
+	/**
+	 * Assigns a demand to a location
+	 * 
+	 * @param pred Predicate
+	 * @param demands Array of demands
+	 */
 	private void createLocationDemad(String pred, double[] demands) {
 
 		// (= (LocationDemand(l0) 44))
@@ -206,6 +277,12 @@ public class CityParser {
 
 	}
 
+	/**
+	 * Creates a patient object 
+	 * 
+	 * @param pred Predicate
+	 * @param patients Array of all patients
+	 */
 	private void createPatient(String pred, ArrayList<Patient> patients) {
 
 		// (= (Priority(p0) 1)))
@@ -219,6 +296,12 @@ public class CityParser {
 		patients.add(patient);
 	}
 
+	/**
+	 * Fills the adjacency matrix with the distance between two nodes
+	 * 
+	 * @param pred Predicate
+	 * @param adjMatrix Adjacency matrix
+	 */
 	private void createRoad(String pred, double[][] adjMatrix) {
 
 		// (= (Distance(l0 l1) 6.647737422253468)
@@ -233,10 +316,18 @@ public class CityParser {
 		adjMatrix[b][a] = d;
 
 	}
+	
+	/* Kattis functions IO */
+	private BufferedReader r;
 
-	private void createWaiting(String pred) {
-		// FIXME: there is no waiting status in Patient
+	private String line;
 
+	private StringTokenizer st;
+
+	private String token;
+	
+	public CityParser(InputStream i) {
+		r = new BufferedReader(new InputStreamReader(i));
 	}
 
 	public double getDouble() {
@@ -283,47 +374,6 @@ public class CityParser {
 		return ans;
 	}
 
-	private void parsePredicate(String l, double[][] adjMatrix, double[][] coord, double[] demands,
-			ArrayList<NodeContent>[] contents) {
-
-		ArrayList<Patient> p = new ArrayList<>();
-		ArrayList<Ambulance> a = new ArrayList<>();
-		ArrayList<Hospital> h = new ArrayList<>();
-
-		String pred = this.nextLine(); // remove init
-
-		/* Fist time look for location */
-		do {
-			//
-			if (pred.contains("LocationCoord")) {
-				createLocationCoord(pred, coord);
-			} else if (pred.contains("LocationDemand")) {
-				createLocationDemad(pred, demands);
-			} else if (pred.contains("Distance")) {
-				createRoad(pred, adjMatrix);
-			} else if (pred.contains("Priority")) {
-				createPatient(pred, p);
-			} else if (pred.contains("Ambulance")) {
-				createAmbulance(pred, a);
-			} else if (pred.contains("Hospital")) {
-				createHospital(pred, h);
-			} else if (pred.contains("At")) {
-				createAt(pred, p, a, h, contents);
-			} else if (pred.contains("Waiting")) {
-				createWaiting(pred);
-			} else if (pred.contains("Available")) {
-				createAvailable(pred);
-			}
-
-			pred = this.nextLine();
-
-		} while (!line.equals(")")); // the close of init (before the goal)
-
-		/*
-		 * Do we need to read the goal?? TODO else
-		 * if(pred.contains("InHospital")) createInHospital(pred);
-		 */
-	}
 
 	private String peekToken() {
 		if (token == null) {
