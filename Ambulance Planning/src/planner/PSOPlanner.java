@@ -80,23 +80,6 @@ public class PSOPlanner extends Planner {
 	}
 
 	/**
-	 * Fill the <code>ambLocations</code> list.
-	 */
-	private void initAmbLocations() {
-		ambLocations = new ArrayList<>();
-		patInAmb = new HashSet<>();
-		for (int ambIdx = 0; ambIdx < ambulances.size(); ambIdx++) {
-			Ambulance amb = ambulances.get(ambIdx);
-			if (amb.isFree()) {
-				ambLocations.add(amb.getNode());
-			} else {
-				ambLocations.add(hospitals.get(singleOptHospitals[ambIdx]).getNode());
-				patInAmb.add(amb.getPatient().getId());
-			}
-		}
-	}
-
-	/**
 	 * Required for PSO to initialize first particles correctly.
 	 * <p>
 	 * Updates <code>particleBounds</code> array.
@@ -145,6 +128,23 @@ public class PSOPlanner extends Planner {
 						singleOptHospitalsDist[i] = curDist;
 					}
 				}
+			}
+		}
+	}
+
+	/**
+	 * Fill the <code>ambLocations</code> list.
+	 */
+	private void initAmbLocations() {
+		ambLocations = new ArrayList<>();
+		patInAmb = new HashSet<>();
+		for (int ambIdx = 0; ambIdx < ambulances.size(); ambIdx++) {
+			Ambulance amb = ambulances.get(ambIdx);
+			if (amb.isFree()) {
+				ambLocations.add(amb.getNode());
+			} else {
+				ambLocations.add(hospitals.get(singleOptHospitals[ambIdx]).getNode());
+				patInAmb.add(amb.getPatient().getId());
 			}
 		}
 	}

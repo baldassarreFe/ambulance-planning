@@ -1,11 +1,6 @@
 package model;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -84,12 +79,22 @@ public class CityMap {
 	private final int ambulanceCount;
 	private final int hospitalCount;
 
+	private Map<Integer, Ambulance> ambulances = new HashMap<>();
+	private Map<Integer, Patient> patients = new HashMap<>();
+	private Map<Integer, Hospital> hospitals = new HashMap<>();
+
 	public CityMap(double[][] adjMatrix, double[][] coordinates, List<List<NodeContent>> contents, double[] demands) {
 		nodeCount = adjMatrix.length;
-		ambulanceCount = (int) contents.stream().flatMap(list -> list.stream()).filter(nc -> nc instanceof Ambulance)
-				.count();
-		hospitalCount = (int) contents.stream().flatMap(list -> list.stream()).filter(nc -> nc instanceof Hospital)
-				.count();
+
+		contents.stream().flatMap(Collection::stream).filter(nc -> nc instanceof Ambulance)
+				.forEach(amb -> ambulances.put(amb.getId(), (Ambulance) amb));
+		contents.stream().flatMap(Collection::stream).filter(nc -> nc instanceof Hospital)
+				.forEach(hos -> hospitals.put(hos.getId(), (Hospital) hos));
+		contents.stream().flatMap(Collection::stream).filter(nc -> nc instanceof Patient)
+				.forEach(pat -> patients.put(pat.getId(), (Patient) pat));
+
+		ambulanceCount = ambulances.size();
+		hospitalCount = hospitals.size();
 
 		this.demands = demands;
 		this.adjMatrix = adjMatrix;
@@ -126,6 +131,7 @@ public class CityMap {
 
 	public void spawn(Patient patient) {
 		contents.get(patient.getNode()).add(patient);
+		patients.put(patient.getId(), patient);
 	}
 
 	public List<Double> getDemands() {
@@ -133,20 +139,19 @@ public class CityMap {
 	}
 
 	public List<Ambulance> getAmbulances() {
-		return getSpecificContent(Ambulance.class);
+		return new ArrayList<>(ambulances.values());
 	}
 
 	public List<Patient> getPatients() {
-		return getSpecificContent(Patient.class);
+		return new ArrayList<>(patients.values());
 	}
 
 	public List<Hospital> getHospitals() {
-		return getSpecificContent(Hospital.class);
+		return new ArrayList<>(hospitals.values());
 	}
 
-	public <T extends NodeContent> List<T> getSpecificContent(Class<T> klass) {
-		return (List<T>) contents.stream().flatMap(Collection::stream).filter(klass::isInstance)
-				.collect(Collectors.toList());
+	public Patient getPatientById(int id) {
+		return patients.get(id);
 	}
 
 	public List<NodeContent> getContentAt(int node) {

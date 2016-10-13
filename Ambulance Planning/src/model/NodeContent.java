@@ -1,6 +1,6 @@
 package model;
 
-public class NodeContent {
+public abstract class NodeContent {
 
 	private int node;
 
@@ -15,4 +15,6 @@ public class NodeContent {
 	public void setNode(int node) {
 		this.node = node;
 	}
+
+	public abstract int getId();
 }

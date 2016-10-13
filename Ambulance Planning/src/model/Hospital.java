@@ -5,7 +5,8 @@ private static int ID = 0;
 	
 	private final int id;
 	private final int maxSeverity;
-	
+
+	@Override
 	public int getId() {
 		return id;
 	}

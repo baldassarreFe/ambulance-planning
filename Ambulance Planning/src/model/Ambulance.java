@@ -13,7 +13,8 @@ public class Ambulance extends NodeContent {
 	private final int id;
 	private Patient patient;
 	private boolean clean;
-	
+
+	@Override
 	public int getId() {
 		return id;
 	}

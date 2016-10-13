@@ -20,6 +20,9 @@ public class AssignmentProblemSolver {
 	 */
 	public static int[] solve(int[][] a) {
 		int n = a.length;
+		if (n == 0) {
+			return new int[0];
+		}
 		int m = a[0].length;
 		int[] u = new int[n + 1];  // potential
 		int[] v = new int[m + 1];  // potential
