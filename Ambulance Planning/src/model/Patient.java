@@ -9,20 +9,6 @@ public class Patient extends NodeContent {
 	private boolean waiting = true;
 	private boolean inHospital = false;
 
-	public int getId() {
-		return id;
-	}
-
-	public int getSeverity() {
-		return severity;
-	}
-
-	public String toString() {
-		return String.format("P%d (%d) @ N%d", id, severity, getNode());
-	}
-
-	// package-private methods
-
 	public Patient(int node, int severity) {
 		this(node, -1, severity);
 	}
@@ -34,6 +20,19 @@ public class Patient extends NodeContent {
 		this.severity = severity;
 	}
 
+	@Override
+	public int getId() {
+		return id;
+	}
+
+	public int getSeverity() {
+		return severity;
+	}
+
+	public boolean isInHospital() {
+		return inHospital;
+	}
+
 	public boolean isWaiting() {
 		return waiting;
 	}
@@ -42,8 +41,18 @@ public class Patient extends NodeContent {
 		waiting = false;
 	}
 
-	public boolean isInHospital() {
-		return inHospital;
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(String.format("P%d (%d) ", id, severity));
+		if (inHospital) {
+			sb.append("SAVED");
+		} else if (waiting) {
+			sb.append("@ N" + getNode());
+		} else {
+			sb.append("TRAVELLING");
+		}
+		return sb.toString();
 	}
 
 	public void unload() {

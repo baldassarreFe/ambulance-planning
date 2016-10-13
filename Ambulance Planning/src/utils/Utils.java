@@ -1,6 +1,5 @@
 package utils;
 
-
 import java.util.Arrays;
 
 public class Utils {
@@ -12,13 +11,13 @@ public class Utils {
 		return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
 	}
 
-
 	/**
 	 * Get ordered indices of array elements after sorting.
 	 * <p>
 	 * Example: [0.3, 0.5, 0.2] -> [2, 0, 1].
 	 *
-	 * @param x input array
+	 * @param x
+	 *            input array
 	 * @return array of indices
 	 */
 	public static int[] getSortedIndices(double[] x) {

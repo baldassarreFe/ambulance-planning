@@ -1,16 +1,13 @@
 package main;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 import model.Action;
 import model.ActionDrop;
@@ -18,14 +15,14 @@ import model.Ambulance;
 import model.CityMap;
 import model.CityMap.Print;
 import model.CityParser;
+import model.ManualPatientProvider;
 import model.Patient;
+import model.PatientProvider;
 import planner.HungarianPlanner;
 import planner.Planner;
 
 public class Main {
 	public static void main(String[] args) throws IOException {
-		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-
 		// args parsing
 		String cityFileName = args[0];
 
@@ -42,6 +39,9 @@ public class Main {
 
 		PrintWriter solutionWriter = new PrintWriter(solution);
 		PrintWriter eventsWriter = new PrintWriter(easyToReadDescription);
+
+		// PatientProvider pProvider = new RandomPatientProvider(0.5, 10, map);
+		PatientProvider pProvider = new ManualPatientProvider(map);
 
 		System.out.println(map.represent(Print.ADJ_MATRIX));
 		System.out.println(map.represent(Print.SHORTEST_DISTANCES_MATRIX));
@@ -67,7 +67,6 @@ public class Main {
 			solutionWriter.println("Step:" + step);
 			eventsWriter.println("Step:" + step);
 			step++;
-			
 
 			// if we don't have a plan make one
 			if (replanningNeeded) {
@@ -99,48 +98,18 @@ public class Main {
 					solutionWriter.println("  " + a);
 					eventsWriter.println("  " + a);
 					map.performAction(a);
-					if (a instanceof ActionDrop)
+					if (a instanceof ActionDrop && planner.replanAfterDropAction()) {
 						replanningNeeded = true;
+					}
 				}
 			}
 
-			// prompt user to spawn a patient
-
-			System.out.printf(
-					"Want to add a patient?\n(enter to continue, r for random, syntax: [node(0-%d) severity(1-3)]* | r, ex: 5 3 7 1)\n > ",
-					map.nodesCount());
-			String answer = in.readLine();
-			if (answer != null && !answer.trim().isEmpty()) {
-				try {
-					// parse user input
-					if (answer.trim().equals("r")) {
-						Random r = new Random();
-						Patient patient = new Patient(r.nextInt(map.nodesCount()), r.nextInt(3) + 1);
-						map.spawn(patient);
-						// invalidate plan
-						replanningNeeded = true;
-						System.out.println("Added " + patient);
-						eventsWriter.println("  Added " + patient);
-					} else {
-						String[] tokens = answer.trim().split(" ");
-						for (int i = 0; i < tokens.length; i+=2) {
-							int node = Integer.parseInt(tokens[i]);
-							int severity = Integer.parseInt(tokens[i+1]);
-							if (node < map.nodesCount() && severity >= 1 && severity <= 3) {
-								Patient patient = new Patient(node, severity);
-								map.spawn(patient);
-								// invalidate plan
-								replanningNeeded = true;
-								System.out.println("Added " + patient);
-								eventsWriter.println("  Added " + patient);
-							} else {
-								System.out.println("Nope");
-							}
-						}
-					}
-				} catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-					System.out.println("Format error");
-				}
+			if (pProvider.hasNewPatient()) {
+				Patient patient = pProvider.getNewPatient();
+				System.out.println("Added " + patient);
+				eventsWriter.println("  Added " + patient);
+				map.spawn(patient);
+				replanningNeeded = true;
 			}
 		} while (replanningNeeded || !plan.values().stream().allMatch(List::isEmpty));
 

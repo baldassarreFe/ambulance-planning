@@ -13,18 +13,21 @@ import model.CityMap;
 public class RandomPlanner extends Planner {
 
 	@Override
+	public boolean replanAfterDropAction() {
+		return true;
+	}
+
+	@Override
 	public Map<Ambulance, List<Action>> solve(CityMap map) {
 		int from = map.getAmbulances().get(0).getNode();
 		int to = (int) map.adjacentNodes(from).toArray()[0];
 		Ambulance amb = map.getAmbulances().get(0);
-		
+
 		List<Action> list = new ArrayList<>();
 		list.add(new ActionMove(amb, from, to));
-		
-		
+
 		Map<Ambulance, List<Action>> result = new HashMap<>();
 		result.put(amb, list);
-		return result ;
+		return result;
 	}
-
 }

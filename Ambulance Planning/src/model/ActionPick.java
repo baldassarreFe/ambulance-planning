@@ -7,15 +7,9 @@ public class ActionPick extends Action {
 	private Patient p;
 
 	public ActionPick(Ambulance a, int at, Patient p) {
-		this.ambulance = a;
+		ambulance = a;
 		this.at = at;
 		this.p = p;
-	}
-
-	@Override
-	protected void checkPreconditions(CityMap cityMap) {
-		if (!(p.isWaiting() && ambulance.isFree() && p.getNode() == at && ambulance.getNode() == at))
-			throw new IllegalStateException();
 	}
 
 	@Override
@@ -23,6 +17,12 @@ public class ActionPick extends Action {
 		ambulance.load(p);
 		cityMap.getContentAt(at).remove(p);
 		p.load();
+	}
+
+	@Override
+	protected void checkPreconditions(CityMap cityMap) {
+		if (!(p.isWaiting() && ambulance.isFree() && p.getNode() == at && ambulance.getNode() == at))
+			throw new IllegalStateException();
 	}
 
 	@Override

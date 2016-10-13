@@ -7,15 +7,9 @@ public class ActionMove extends Action {
 	private int to;
 
 	public ActionMove(Ambulance a, int from, int to) {
-		this.ambulance = a;
+		ambulance = a;
 		this.from = from;
 		this.to = to;
-	}
-
-	@Override
-	protected void checkPreconditions(CityMap cityMap) {
-		if (!(ambulance.getNode() == from && cityMap.areAdjacent(from, to)))
-			throw new IllegalStateException();
 	}
 
 	@Override
@@ -23,6 +17,12 @@ public class ActionMove extends Action {
 		cityMap.getContentAt(from).remove(ambulance);
 		ambulance.setNode(to);
 		cityMap.getContentAt(to).add(ambulance);
+	}
+
+	@Override
+	protected void checkPreconditions(CityMap cityMap) {
+		if (!(ambulance.getNode() == from && cityMap.areAdjacent(from, to)))
+			throw new IllegalStateException();
 	}
 
 	@Override

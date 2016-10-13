@@ -1,12 +1,14 @@
 package model;
 
-public class NodeContent {
+public abstract class NodeContent {
 
 	private int node;
 
 	public NodeContent(int node) {
 		this.node = node;
 	}
+
+	public abstract int getId();
 
 	public int getNode() {
 		return node;

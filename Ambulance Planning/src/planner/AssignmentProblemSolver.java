@@ -3,33 +3,58 @@ package planner;
 import java.util.Arrays;
 
 /**
- * Solver for an assignment problem.
- * Here we use a version of Hungarian algorithm with asymptotic <code>O(N^3)</code>.
- * Algorithm author: Andrei Lopatin, 2008.
+ * Solver for an assignment problem. Here we use a version of Hungarian
+ * algorithm with asymptotic <code>O(N^3)</code>. Algorithm author: Andrei
+ * Lopatin, 2008.
  */
 public class AssignmentProblemSolver {
 
 	/**
+	 * Should be greater than any number in the given matrix.
+	 */
+	private static final int INF = Integer.MAX_VALUE / 10;
+
+	/**
+	 * todo: remove debugging from final version
+	 */
+	public static void main(String[] args) {
+		int[][] a = { { 9, 5, 5, 6, 5 }, { 1, 9, 4, 7, 3 }, { 1, 2, 7, 4, 9 }, { 8, 1, 4, 4, 4 }, { 1, 6, 4, 9, 4 } };
+		// SOLUTION a
+		// { , , 5, , },
+		// { , , , , 3},
+		// { , , , 4, },
+		// { , 1, , , },
+		// {1, , , , }
+
+		System.out.println(Arrays.toString(solve(a)));
+	}
+
+	/**
 	 * Solving method.
 	 * <p>
-	 * Note: works for integer values, doubles should be rounded to int before using the algorithm.
-	 * todo: comment and get a better understanding
+	 * Note: works for integer values, doubles should be rounded to int before
+	 * using the algorithm. todo: comment and get a better understanding
 	 *
-	 * @param a matrix of size NxM (values should be non-negative)
+	 * @param a
+	 *            matrix of size NxM (values should be non-negative)
 	 * @return array of size N
 	 */
 	public static int[] solve(int[][] a) {
 		int n = a.length;
+		if (n == 0)
+			return new int[0];
 		int m = a[0].length;
-		int[] u = new int[n + 1];  // potential
-		int[] v = new int[m + 1];  // potential
-		int[] p = new int[m + 1];  // maximum matching: for ith row, p[i] - matching column
-		int[] way = new int[m + 1];  // way[j] = argmin_i {a[i][j] - u[i] - v[j]}
+		int[] u = new int[n + 1]; // potential
+		int[] v = new int[m + 1]; // potential
+		int[] p = new int[m + 1]; // maximum matching: for ith row, p[i] -
+									// matching column
+		int[] way = new int[m + 1]; // way[j] = argmin_i {a[i][j] - u[i] - v[j]}
 
 		for (int i = 1; i <= n; i++) {
 			p[0] = i;
 			int j0 = 0;
-			int[] minv = new int[m + 1]; // minv[j] = min_i {a[i][j] - u[i] - v[j]}
+			int[] minv = new int[m + 1]; // minv[j] = min_i {a[i][j] - u[i] -
+											// v[j]}
 			Arrays.fill(minv, INF);
 			boolean[] used = new boolean[m + 1];
 			do {
@@ -69,44 +94,12 @@ public class AssignmentProblemSolver {
 
 		int[] ans = new int[n];
 		for (int j = 1; j <= m; j++) {
-			if(p[j]==0)
+			if (p[j] == 0) {
 				continue;
+			}
 			ans[p[j] - 1] = j - 1;
 		}
 
 		return ans;
-	}
-
-	/**
-	 * Should be greater than any number in the given matrix.
-	 */
-	private static final int INF = Integer.MAX_VALUE / 10;
-
-
-	/**
-	 * todo: remove debugging from final version
-	 */
-	public static void main(String[] args) {
-		int[][] a = {
-				{9, 5, 5, 6, 5},
-				{1, 9, 4, 7, 3},
-				{1, 2, 7, 4, 9},
-				{8, 1, 4, 4, 4},
-				{1, 6, 4, 9, 4}
-		};
-//		SOLUTION a
-//		{ ,  , 5,  ,  },
-//		{ ,  ,  ,  , 3},
-//		{ ,  ,  , 4,  },
-//		{ , 1,  ,  ,  },
-//		{1,  ,  ,  ,  }
-		
-//		int[][] a = {
-//				{10, 1, 10},
-//				{2, 10, 10},
-//				{10, 10, 3}
-//		};
-		int[][] b = {{11,13,31},{11,21,32}};
-		System.out.println(Arrays.toString(solve(a)));
 	}
 }

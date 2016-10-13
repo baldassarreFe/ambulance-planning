@@ -5,13 +5,44 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class CityMap {
+	public static enum Print {
+		ALL, ADJ_MATRIX, SHORTEST_DISTANCES_MATRIX, SHORTEST_PATHS, AMBULANCES_LOCATIONS, PATIENT_LOCATIONS, HOSPITAL_LOCATIONS, DEMANDS
+	}
+
+	public static final int X = 0;
+	public static final int Y = 1;
+	public static final int NUM_COORD = 2;
+
+	private static void dump(double[][] adjMatrix) {
+		try {
+			PrintWriter pw = new PrintWriter("cityDump.txt");
+
+			// cut and paste http://graphonline.ru/en/
+			pw.println(Arrays.stream(adjMatrix).map(
+					row -> Arrays.stream(row).mapToObj(v -> (int) Math.round(v) + "").collect(Collectors.joining(", ")))
+					.collect(Collectors.joining("\n")));
+
+			// python friendly
+			pw.println(Arrays.stream(adjMatrix)
+					.map(row -> Arrays.stream(row).mapToObj(v -> (int) Math.round(v) + "")
+							.collect(Collectors.joining(", ", "[", "]")))
+					.collect(Collectors.joining(",\n", "\n[", "]\n")));
+			pw.close();
+		} catch (FileNotFoundException e) {
+			// ignore
+		}
+
+	}
+
 	public static CityMap randomize() {
 		Random r = new Random();
 		int numNodes = 10;
@@ -73,28 +104,36 @@ public class CityMap {
 		return map;
 	}
 
-	public static final int X = 0;
-	public static final int Y = 1;
-	public static final int NUM_COORD = 2;
-
 	private final double[][] adjMatrix;
 	private final double[] demands;
 	private final List<List<NodeContent>> contents;
 	private final double[][] shortestDistances;
 	private final ArrayList<?>[][] shortestsPaths; // ? will be integers
 	private final int nodeCount;
+
 	private final int ambulanceCount;
 	private final int hospitalCount;
+	private Map<Integer, Ambulance> ambulances = new HashMap<>();
+
+	private Map<Integer, Patient> patients = new HashMap<>();
+
+	private Map<Integer, Hospital> hospitals = new HashMap<>();
 
 	public CityMap(double[][] adjMatrix, double[][] coordinates, List<List<NodeContent>> contents, double[] demands) {
 		// Just to debug
 		dump(adjMatrix);
 
 		nodeCount = adjMatrix.length;
-		ambulanceCount = (int) contents.stream().flatMap(list -> list.stream()).filter(nc -> nc instanceof Ambulance)
-				.count();
-		hospitalCount = (int) contents.stream().flatMap(list -> list.stream()).filter(nc -> nc instanceof Hospital)
-				.count();
+
+		contents.stream().flatMap(Collection::stream).filter(nc -> nc instanceof Ambulance)
+				.forEach(amb -> ambulances.put(amb.getId(), (Ambulance) amb));
+		contents.stream().flatMap(Collection::stream).filter(nc -> nc instanceof Hospital)
+				.forEach(hos -> hospitals.put(hos.getId(), (Hospital) hos));
+		contents.stream().flatMap(Collection::stream).filter(nc -> nc instanceof Patient)
+				.forEach(pat -> patients.put(pat.getId(), (Patient) pat));
+
+		ambulanceCount = ambulances.size();
+		hospitalCount = hospitals.size();
 
 		this.demands = demands;
 		this.adjMatrix = adjMatrix;
@@ -105,111 +144,29 @@ public class CityMap {
 		computePaths();
 	}
 
-	private static void dump(double[][] adjMatrix) {
-		try {
-			PrintWriter pw = new PrintWriter("cityDump.txt");
-
-			// cut and paste http://graphonline.ru/en/
-			pw.println(Arrays.stream(adjMatrix).map(
-					row -> Arrays.stream(row).mapToObj(v -> (int) Math.round(v) + "").collect(Collectors.joining(", ")))
-					.collect(Collectors.joining("\n")));
-
-			// python friendly
-			pw.println(Arrays.stream(adjMatrix)
-					.map(row -> Arrays.stream(row).mapToObj(v -> (int) Math.round(v) + "")
-							.collect(Collectors.joining(", ", "[", "]")))
-					.collect(Collectors.joining(",\n", "\n[", "]\n")));
-			pw.close();
-		} catch (FileNotFoundException e) {
-			// ignore
-		}
-
-	}
-
-	public double[][] getShortestDistances() {
-		return shortestDistances;
+	public Set<Integer> adjacentNodes(int from) {
+		return IntStream.range(0, nodeCount).filter(to -> adjMatrix[from][to] > 0).boxed().collect(Collectors.toSet());
 	}
 
 	public int ambulanceCount() {
 		return ambulanceCount;
 	}
 
-	public int hospitalCount() {
-		return hospitalCount;
-	}
-
-	public int patientCount() {
-		return (int) contents.stream().flatMap(list -> list.stream()).filter(nc -> nc instanceof Patient).count();
-	}
-
-	public int nodesCount() {
-		return nodeCount;
-	}
-
-	public double getDemand(int node) {
-		return demands[node];
-	}
-
-	public void spawn(Patient patient) {
-		contents.get(patient.getNode()).add(patient);
-	}
-
-	public List<Double> getDemands() {
-		return Arrays.stream(demands).boxed().collect(Collectors.toList());
-	}
-
-	public List<Ambulance> getAmbulances() {
-		return getSpecificContent(Ambulance.class);
-	}
-
-	public List<Patient> getPatients() {
-		return getSpecificContent(Patient.class);
-	}
-
-	public List<Hospital> getHospitals() {
-		return getSpecificContent(Hospital.class);
-	}
-
-	public <T extends NodeContent> List<T> getSpecificContent(Class<T> klass) {
-		return (List<T>) contents.stream().flatMap(Collection::stream).filter(klass::isInstance)
-				.collect(Collectors.toList());
-	}
-
-	public List<NodeContent> getContentAt(int node) {
-		return contents.get(node);
-	}
-
-	public double shortestDistance(int from, int to) {
-		return shortestDistances[from][to];
-	}
-
-	public ArrayList<Integer> shortestPath(int from, int to) {
-		return (ArrayList<Integer>) shortestsPaths[from][to];
-	}
-
-	public List<?> shortestPathsFrom(int from) {
-		return IntStream.range(0, nodeCount).mapToObj(to -> shortestsPaths[from][to]).collect(Collectors.toList());
-	}
-
-	public List<?> shortestPathsTo(int to) {
-		return IntStream.range(0, nodeCount).mapToObj(from -> shortestsPaths[from][to]).collect(Collectors.toList());
-	}
-
-	public void performAction(Action action) {
-		action.performAction(this);
-	}
-
-	public Set<Integer> adjacentNodes(int from) {
-		return IntStream.range(0, nodeCount).filter(to -> adjMatrix[from][to] > 0).boxed().collect(Collectors.toSet());
-	}
-
-	public Set<Integer> nodesThatReach(int to) {
-		return IntStream.range(0, nodeCount).filter(from -> adjMatrix[from][to] > 0).boxed()
-				.collect(Collectors.toSet());
-	}
-
 	public boolean areAdjacent(int from, int to) {
 		return adjMatrix[from][to] > 0;
+	}
+
+	public int closestHospital(int from) {
+		double min = Double.POSITIVE_INFINITY;
+		int result = 0;
+		for (int hosNode : getHospitals().stream().mapToInt(h -> h.getNode()).toArray()) {
+			double dist = shortestDistance(from, hosNode);
+			if (dist < min) {
+				result = hosNode;
+				min = dist;
+			}
+		}
+		return result;
 	}
 
 	private void computePaths() {
@@ -264,6 +221,59 @@ public class CityMap {
 		}
 	}
 
+	public List<Ambulance> getAmbulances() {
+		return new ArrayList<>(ambulances.values());
+	}
+
+	public List<NodeContent> getContentAt(int node) {
+		return contents.get(node);
+	}
+
+	public double getDemand(int node) {
+		return demands[node];
+	}
+
+	public List<Double> getDemands() {
+		return Arrays.stream(demands).boxed().collect(Collectors.toList());
+	}
+
+	public List<Hospital> getHospitals() {
+		return new ArrayList<>(hospitals.values());
+	}
+
+	public Patient getPatientById(int id) {
+		return patients.get(id);
+	}
+
+	public List<Patient> getPatients() {
+		return new ArrayList<>(patients.values());
+	}
+
+	public double[][] getShortestDistances() {
+		return shortestDistances;
+	}
+
+	public int hospitalCount() {
+		return hospitalCount;
+	}
+
+	public int nodesCount() {
+		return nodeCount;
+	}
+
+	public Set<Integer> nodesThatReach(int to) {
+		return IntStream.range(0, nodeCount).filter(from -> adjMatrix[from][to] > 0).boxed()
+				.collect(Collectors.toSet());
+	}
+
+	public int patientCount() {
+		return (int) contents.stream().flatMap(list -> list.stream()).filter(nc -> nc instanceof Patient).count();
+	}
+
+	public void performAction(Action action) {
+		action.performAction(this);
+	}
+
 	public String represent(Print what) {
 		StringBuilder sb = new StringBuilder();
 
@@ -296,7 +306,8 @@ public class CityMap {
 					.collect(Collectors.joining("\n", "Hospitals:\n", "\n")));
 			break;
 		case PATIENT_LOCATIONS:
-			sb.append(getPatients().stream().map(Patient::toString).collect(Collectors.joining("\n", "Patients:\n", "\n")));
+			sb.append(getPatients().stream().map(Patient::toString)
+					.collect(Collectors.joining("\n", "Patients:\n", "\n")));
 			break;
 		case DEMANDS:
 			sb.append(IntStream.range(0, nodeCount).mapToDouble(n -> demands[n]).mapToObj(Double::toString)
@@ -310,20 +321,24 @@ public class CityMap {
 		return sb.toString();
 	}
 
-	public static enum Print {
-		ALL, ADJ_MATRIX, SHORTEST_DISTANCES_MATRIX, SHORTEST_PATHS, AMBULANCES_LOCATIONS, PATIENT_LOCATIONS, HOSPITAL_LOCATIONS, DEMANDS
+	public double shortestDistance(int from, int to) {
+		return shortestDistances[from][to];
 	}
 
-	public int closestHospital(int from) {
-		double min = Double.POSITIVE_INFINITY;
-		int result = 0;
-		for (int hosNode : getHospitals().stream().mapToInt(h -> h.getNode()).toArray()) {
-			double dist = shortestDistance(from, hosNode);
-			if (dist < min) {
-				result = hosNode;
-				min = dist;
-			}
-		}
-		return result;
+	public ArrayList<Integer> shortestPath(int from, int to) {
+		return (ArrayList<Integer>) shortestsPaths[from][to];
+	}
+
+	public List<?> shortestPathsFrom(int from) {
+		return IntStream.range(0, nodeCount).mapToObj(to -> shortestsPaths[from][to]).collect(Collectors.toList());
+	}
+
+	public List<?> shortestPathsTo(int to) {
+		return IntStream.range(0, nodeCount).mapToObj(from -> shortestsPaths[from][to]).collect(Collectors.toList());
+	}
+
+	public void spawn(Patient patient) {
+		contents.get(patient.getNode()).add(patient);
+		patients.put(patient.getId(), patient);
 	}
 }
