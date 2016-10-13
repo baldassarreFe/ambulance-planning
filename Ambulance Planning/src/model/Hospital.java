@@ -44,6 +44,6 @@ public class Hospital extends NodeContent {
 
 	@Override
 	public String toString() {
-		return String.format("H_%d (%d)", id, maxSeverity);
+		return String.format("H_%d @ N%d (%d)", id, getNode(), maxSeverity);
 	}
 }

@@ -9,16 +9,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import model.Action;
-import model.ActionDrop;
-import model.ActionMove;
-import model.Ambulance;
-import model.CityMap;
+import model.*;
 import model.CityMap.Print;
-import model.CityParser;
-import model.ManualPatientProvider;
-import model.Patient;
-import model.PatientProvider;
 import planner.HungarianPlanner;
 import planner.Planner;
 
@@ -27,7 +19,7 @@ public class Main {
 	private static double totalDistance = 0.0;
 	private static long totalWaitingTime = 0;
 	
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws Exception {
 		// parsing the problem description from the command line
 		String cityFileName = args[0];
 
@@ -38,15 +30,19 @@ public class Main {
 		String solution = "logs/" + cityFileName.split(".pddl")[0] + now + ".plan";
 
 		// initial set up
-		Planner planner = new HungarianPlanner();
+		Planner planner = (Planner) Class.forName(args[1]).getConstructor().newInstance();
 		CityMap map = CityParser.parse(cityFileName);
 		Files.copy(new File(cityFileName).toPath(), new File(easyToReadDescription).toPath());
 
 		PrintWriter solutionWriter = new PrintWriter(solution);
 		PrintWriter eventsWriter = new PrintWriter(easyToReadDescription);
 
-		// PatientProvider pProvider = new RandomPatientProvider(0.5, 10, map);
-		PatientProvider pProvider = new ManualPatientProvider(map);
+		PatientProvider pProvider;
+		if (args.length == 2) {
+			pProvider = new ManualPatientProvider(map);
+		} else {
+			pProvider = new RandomPatientProvider(Double.parseDouble(args[2]), Integer.parseInt(args[3]), map);
+		}
 
 		System.out.println(map.represent(Print.ADJ_MATRIX));
 		System.out.println(map.represent(Print.SHORTEST_DISTANCES_MATRIX));
