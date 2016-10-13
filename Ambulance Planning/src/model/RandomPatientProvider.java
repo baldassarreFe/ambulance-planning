@@ -3,7 +3,7 @@ package model;
 import java.util.Random;
 import java.util.stream.DoubleStream;
 
-public class RandomPatientProvider extends PatientProvider {
+public class RandomPatientProvider implements PatientProvider {
 
 	private Random random = new Random(504);
 	private double prob;

@@ -1,12 +1,16 @@
 package model;
 
-public abstract class PatientProvider {
+public interface PatientProvider {
 
-	public PatientProvider() {
-	}
-
+	/**A new patient if available
+	 * @return
+	 */
 	public abstract Patient getNewPatient();
 
+	
+	/**Checks if this provider has a new patient ready to be spawn
+	 * @return
+	 */
 	public abstract boolean hasNewPatient();
 
 }

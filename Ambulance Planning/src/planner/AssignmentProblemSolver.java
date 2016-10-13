@@ -14,16 +14,14 @@ public class AssignmentProblemSolver {
 	 */
 	private static final int INF = Integer.MAX_VALUE / 10;
 
-	/**
-	 * todo: remove debugging from final version
-	 */
+	//  just testing
 	public static void main(String[] args) {
 		int[][] a = { { 9, 5, 5, 6, 5 }, { 1, 9, 4, 7, 3 }, { 1, 2, 7, 4, 9 }, { 8, 1, 4, 4, 4 }, { 1, 6, 4, 9, 4 } };
 		// SOLUTION a
-		// { , , 5, , },
-		// { , , , , 3},
-		// { , , , 4, },
-		// { , 1, , , },
+		// { , ,5, , },
+		// { , , , ,3},
+		// { , , ,4, },
+		// { ,1, , , },
 		// {1, , , , }
 
 		System.out.println(Arrays.toString(solve(a)));

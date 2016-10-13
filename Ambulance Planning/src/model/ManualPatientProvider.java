@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Random;
 
-public class ManualPatientProvider extends PatientProvider {
+public class ManualPatientProvider implements PatientProvider {
 
 	private BufferedReader in;
 	private CityMap map;
