@@ -2,3 +2,5 @@
 */__pycache__
 Ambulance\ Planning/cityDump.txt
 Ambulance\ Planning/logs
+!*/release/*.jar
+

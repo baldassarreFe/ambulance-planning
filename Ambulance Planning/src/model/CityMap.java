@@ -26,12 +26,12 @@ public class CityMap {
 		try {
 			PrintWriter pw = new PrintWriter("cityDump.txt");
 
-			// cut and paste http://graphonline.ru/en/
+			pw.println("Paste on http://graphonline.ru/en/");
 			pw.println(Arrays.stream(adjMatrix).map(
 					row -> Arrays.stream(row).mapToObj(v -> (int) Math.round(v) + "").collect(Collectors.joining(", ")))
 					.collect(Collectors.joining("\n")));
 
-			// python friendly
+			pw.println("Python friendly");
 			pw.println(Arrays.stream(adjMatrix)
 					.map(row -> Arrays.stream(row).mapToObj(v -> (int) Math.round(v) + "")
 							.collect(Collectors.joining(", ", "[", "]")))
