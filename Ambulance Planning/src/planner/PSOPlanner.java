@@ -327,7 +327,7 @@ public class PSOPlanner extends Planner {
 			if (amb.isFree()) {
 				ambLocations.add(amb.getNode());
 			} else {
-				ambLocations.add(hospitals.get(singleOptHospitals[ambIdx]).getNode());
+				ambLocations.add(closestHospital(amb.getNode()).getNode());
 				patInAmb.add(amb.getPatient().getId());
 			}
 		}

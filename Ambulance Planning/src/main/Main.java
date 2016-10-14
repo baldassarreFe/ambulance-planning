@@ -112,7 +112,9 @@ public class Main {
 			
 			totalWaitingTime += map.getPatients().stream().filter(Patient::isWaiting).count();
 
-			if (pProvider.hasNewPatient()) {
+			boolean planIsEmpty = plan.values().stream().allMatch(List::isEmpty);
+
+			if (pProvider.hasNewPatient(planIsEmpty)) {
 				Patient patient = pProvider.getNewPatient();
 				System.out.println("Added " + patient);
 				eventsWriter.println("  Added " + patient);

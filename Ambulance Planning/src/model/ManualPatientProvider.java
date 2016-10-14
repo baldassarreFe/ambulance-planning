@@ -26,7 +26,7 @@ public class ManualPatientProvider implements PatientProvider {
 	}
 
 	@Override
-	public boolean hasNewPatient() {
+	public boolean hasNewPatient(boolean planIsEmpty) {
 		try {
 			System.out.printf(
 					"Want to add a patient?\n(enter to continue, r for random, syntax: [node(0-%d) severity(1-3)]* | r, ex: 5 3 7 1)\n > ",

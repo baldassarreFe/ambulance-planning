@@ -33,7 +33,7 @@ public class RandomPatientProvider implements PatientProvider {
 	}
 
 	@Override
-	public boolean hasNewPatient() {
-		return maxNumberOfPatients > 0 && random.nextDouble() < prob;
+	public boolean hasNewPatient(boolean planIsEmpty) {
+		return maxNumberOfPatients > 0 && (planIsEmpty || random.nextDouble() < prob);
 	}
 }

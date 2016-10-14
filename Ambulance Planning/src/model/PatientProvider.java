@@ -11,6 +11,6 @@ public interface PatientProvider {
 	/**Checks if this provider has a new patient ready to be spawn
 	 * @return
 	 */
-	public abstract boolean hasNewPatient();
+	public abstract boolean hasNewPatient(boolean planIsEmpty);
 
 }
